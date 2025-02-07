@@ -80,7 +80,7 @@ namespace anticheat {
 			// reads the config for cheating commands every map load
 			std::string GetCheatingCommands()
 			{
-				std::string config_path = game::GetBlackOpsPath() + "\\players\\config.cfg";
+				std::string config_path = game::GetGamePath() + "\\players\\config.cfg";
 
 				// check if the config exists
 				if (!filesystem::exists(config_path))

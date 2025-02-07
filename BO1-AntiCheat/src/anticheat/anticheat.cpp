@@ -16,6 +16,12 @@
 
 #include "integrity/engine.hpp"
 
+#include "helper/helper.hpp"
+
+#include "integrity/dvars.hpp"
+
+#include "../utils/strings.hpp"
+
 using namespace std;
 
 bool initialized = false;
@@ -24,8 +30,8 @@ bool cheating_detected = false;
 bool notified_cheats_detected = false;
 bool integrity_check_override = false;
 
-int last_map_id = 0;
-int current_map_id = 0;
+const char* current_map = "";
+const char* last_map = "";
 
 vector<std::string> cheats_found;
 
@@ -40,6 +46,12 @@ namespace anticheat {
 
         // set which config binds are not allowed
         integrity::config::InitializeConfigQueue();
+    }
+
+    // make sure the map is actually a map, excluding the main menu map
+    bool IsMapValid(const char* map_name)
+    {
+        return map_name != nullptr && std::strcmp(map_name, "") != 0 && std::strcmp(map_name, "frontend") != 0;
     }
 
     // displays the "Game not connected." message
@@ -85,11 +97,11 @@ namespace anticheat {
             return;
         }
 
-        last_map_id = current_map_id;
-        current_map_id = game::GetMapId();
+        last_map = current_map;
+        current_map = integrity::dvars::CallGetDvarString("mapname");
 
-        bool map_id_changed = performed_integrity_check && last_map_id != Constants::NO_MAP && current_map_id == Constants::NO_MAP;
-        if (map_id_changed)
+        bool map_changed = std::strcmp(current_map, last_map) != 0;
+        if (map_changed)
         {
             performed_integrity_check = false;
         }
@@ -99,8 +111,7 @@ namespace anticheat {
         // only check when the map is being loaded/quit
         if (!performed_integrity_check)
         {
-            bool last_map_id_valid = last_map_id != Constants::NO_MAP && last_map_id != Constants::INVALID_MAP;
-            if ((last_map_id_valid && current_map_id == Constants::NO_MAP) || integrity_check_override)
+            if (IsMapValid(current_map) || integrity_check_override)
             {
                 main_status = Statuses::CHECKING_FOR_PATCHES;
                 if (!ff_checking_after_map_load)
@@ -137,14 +148,14 @@ namespace anticheat {
                 string extra_common_files = integrity::zone::GetExtraFilesInZone("Common");
                 if (extra_common_files != "")
                 {
-                    AddCheatFound("Extra files found in zone/Common, could be a stealth patch: " + extra_common_files);
+                    AddCheatFound("Extra files found in zone\\Common, could be a stealth patch: " + extra_common_files);
                 }
 
                 string lang_zone = game::GetLanguageZoneName();
                 string extra_lang_files = integrity::zone::GetExtraFilesInZone(lang_zone);
                 if (extra_lang_files != "")
                 {
-                    AddCheatFound("Extra files found in zone/Common" + lang_zone + ", could be a stealth patch: " + extra_lang_files);
+                    AddCheatFound("Extra files found in zone\\Common" + lang_zone + ", could be a stealth patch: " + extra_lang_files);
                 }
 
                 // check for any known stealth patch injections
@@ -191,8 +202,7 @@ namespace anticheat {
         }
 
         // check game values such as godmode, box movable, etc.
-        int map_id = game::GetMapId();
-        if (map_id != Constants::INVALID_MAP && map_id != Constants::NO_MAP)
+        if (IsMapValid(current_map))
         {
             string playerStates = integrity::engine::GetModifiedPlayerStates();
             if (playerStates != "")
@@ -223,6 +233,18 @@ namespace anticheat {
     // waits for the game to be opened before we run any checks
     void WaitForBlackOpsProcess()
     {
+        if (cheating_detected)
+        {
+            return;
+        }
+
+        if (!helper::CheckHelperIntegrity() && !cheating_detected)
+        {
+            AddCheatFound(Constants::HELPER_NAME + " is required to run the anticheat.");
+            NotifyCheatsDetected();
+            return;
+        }
+
         if (!game::process::IsGameOpen() && !cheating_detected)
         {
             OnGameClosed();
@@ -235,18 +257,24 @@ namespace anticheat {
         // this checks for certain things once, think of it as an "OnGameOpen"
         if (!initialized)
         {
-            int map_id = game::GetMapId();
-            if (map_id != Constants::MAIN_MENU_ID)
+            if (current_map != "frontend")
             {
                 info_status = "Not in a map";
                 main_status = Statuses::GAME_CONNECTED;
 
                 // check for patching methods mid game
-                if (map_id != Constants::NO_MAP && map_id != Constants::INVALID_MAP)
+                if (IsMapValid(current_map))
                 {
                     integrity_check_override = true;
                     info_status = Statuses::PATCHES_CHECKED_AFTER_MAP_LOAD;
                 }
+            }
+
+            if (!helper::InjectHelper())
+            {
+                MessageBoxA(NULL, "Could not initialize helper dll.", "BO1 Anti Cheat (Error)", MB_OK | MB_ICONERROR);
+                ExitProcess(0);
+                return;
             }
 
             game::CheckForAllowedTools();

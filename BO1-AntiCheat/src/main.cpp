@@ -6,13 +6,13 @@
 
 #include "anticheat/settings/settings.hpp"
 
-#include "anticheat/resources/bo1_png_data.h"
+#include "resources/bo1_png_data.h"
 
-#include "anticheat/resources/icon_png_data.h"
+#include "resources/icon_png_data.h"
 
-#include "anticheat/resources/bold_font_data.h"
+#include "resources/bold_font_data.h"
 
-#include "anticheat/resources/semibold_font_data.h"
+#include "resources/semibold_font_data.h"
 
 #include "utils/strings.hpp"
 
@@ -90,7 +90,7 @@ static void CheckForDebugger()
 			// PEB flags for debugging indicators
 			CheckPEBFlags())
 		{
-			ExitProcess(1);
+			//ExitProcess(1);
 		}
 
 		this_thread::sleep_for(std::chrono::milliseconds(100));
@@ -154,8 +154,8 @@ std::string WrapText(std::string text, sf::Font font, int fontSize, float maxWid
 	return wrappedText;
 }
 
-int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow)
-//int main()
+//int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow)
+int main()
 {
 	// setup hooks
 	if (!anticheat::hooks::Initialize())

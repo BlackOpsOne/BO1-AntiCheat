@@ -55,20 +55,20 @@ namespace game {
 		return gameTime;
 	}
 
-	// gets the path to zone/Common
+	// gets the path to zone\\Common
 	std::string GetZoneCommon()
 	{
-		return GetBlackOpsPath() + "\\zone\\Common\\";
+		return GetGamePath() + "\\zone\\Common\\";
 	}
 
 	// gets the path to the current langauge folder
 	std::string GetZoneLanguage()
 	{
-		return GetBlackOpsPath() + "\\zone\\" + GetLanguageZoneName() + "\\";
+		return GetGamePath() + "\\zone\\" + GetLanguageZoneName() + "\\";
 	}
 
 	// gets the path to the executable thats being run
-	std::string GetBlackOpsPath()
+	std::string GetGamePath()
 	{
 		std::string blackOpsPath = process::GetPathToExe();
 		std::string::size_type pos = blackOpsPath.find_last_of("\\/");
@@ -134,7 +134,7 @@ namespace game {
 			return false;
 		}
 
-		string game_folder = game::GetBlackOpsPath();
+		string game_folder = game::GetGamePath();
 		string steam_api = game_folder + "\\steam_api.dll";
 		string fx_tool = game_folder + "\\blackops-fx.dll";
 

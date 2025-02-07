@@ -2,6 +2,8 @@
 
 #include "../game/process.hpp"
 
+#include "../constants.h"
+
 using namespace std;
 
 namespace utils {
@@ -96,6 +98,120 @@ namespace utils {
 			}
 
 			return true; // all matched
+		}
+
+		bool InjectDLL(HANDLE process, const char* dll_path)
+		{
+			LPVOID pDllPath = VirtualAllocEx(process, NULL, strlen(dll_path) + 1, MEM_COMMIT, PAGE_READWRITE);
+			if (!pDllPath)
+			{
+				return false;
+			}
+
+			if (!WriteProcessMemory(process, pDllPath, (LPVOID)dll_path, strlen(dll_path) + 1, NULL))
+			{
+				VirtualFreeEx(process, pDllPath, 0, MEM_RELEASE);
+				return false;
+			}
+
+			HANDLE hThread = CreateRemoteThread(process, NULL, 0, (LPTHREAD_START_ROUTINE)LoadLibraryA, pDllPath, 0, NULL);
+			if (!hThread)
+			{
+				VirtualFreeEx(process, pDllPath, 0, MEM_RELEASE);
+				return false;
+			}
+
+			WaitForSingleObject(hThread, INFINITE);
+
+			VirtualFreeEx(process, pDllPath, 0, MEM_RELEASE);
+			CloseHandle(hThread);
+
+			return true;
+		}
+
+		FARPROC GetRemoteProcAddress(HANDLE hProcess, HMODULE hModule, const char* functionName)
+		{
+			if (!hModule)
+				return nullptr;
+
+			// Read the IMAGE_DOS_HEADER
+			IMAGE_DOS_HEADER dosHeader;
+			if (!ReadProcessMemory(hProcess, (LPCVOID)hModule, &dosHeader, sizeof(IMAGE_DOS_HEADER), nullptr) ||
+				dosHeader.e_magic != IMAGE_DOS_SIGNATURE)
+			{
+				return nullptr;
+			}
+
+			// Read the IMAGE_NT_HEADERS
+			IMAGE_NT_HEADERS ntHeaders;
+			if (!ReadProcessMemory(hProcess, (LPCVOID)((BYTE*)hModule + dosHeader.e_lfanew), &ntHeaders, sizeof(IMAGE_NT_HEADERS), nullptr) ||
+				ntHeaders.Signature != IMAGE_NT_SIGNATURE)
+			{
+				return nullptr;
+			}
+
+			// Read the IMAGE_EXPORT_DIRECTORY
+			IMAGE_DATA_DIRECTORY exportDataDir = ntHeaders.OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_EXPORT];
+			IMAGE_EXPORT_DIRECTORY exportDirectory;
+			if (!ReadProcessMemory(hProcess, (LPCVOID)((BYTE*)hModule + exportDataDir.VirtualAddress), &exportDirectory, sizeof(IMAGE_EXPORT_DIRECTORY), nullptr))
+			{
+				return nullptr;
+			}
+
+			// Read function names and addresses
+			DWORD* namePointers = new DWORD[exportDirectory.NumberOfNames];
+			WORD* ordinalTable = new WORD[exportDirectory.NumberOfNames];
+			DWORD* functionPointers = new DWORD[exportDirectory.NumberOfFunctions];
+
+			ReadProcessMemory(hProcess, (LPCVOID)((BYTE*)hModule + exportDirectory.AddressOfNames), namePointers, exportDirectory.NumberOfNames * sizeof(DWORD), nullptr);
+			ReadProcessMemory(hProcess, (LPCVOID)((BYTE*)hModule + exportDirectory.AddressOfNameOrdinals), ordinalTable, exportDirectory.NumberOfNames * sizeof(WORD), nullptr);
+			ReadProcessMemory(hProcess, (LPCVOID)((BYTE*)hModule + exportDirectory.AddressOfFunctions), functionPointers, exportDirectory.NumberOfFunctions * sizeof(DWORD), nullptr);
+
+			// Iterate through function names to find the matching one
+			FARPROC remoteFunctionAddress = nullptr;
+			for (DWORD i = 0; i < exportDirectory.NumberOfNames; i++)
+			{
+				char functionNameBuffer[256] = { 0 };
+				ReadProcessMemory(hProcess, (LPCVOID)((BYTE*)hModule + namePointers[i]), functionNameBuffer, sizeof(functionNameBuffer), nullptr);
+
+				if (_stricmp(functionName, functionNameBuffer) == 0)
+				{
+					WORD functionOrdinal = ordinalTable[i];
+					DWORD functionRVA = functionPointers[functionOrdinal];
+					remoteFunctionAddress = (FARPROC)((BYTE*)hModule + functionRVA);
+					break;
+				}
+			}
+
+			// Cleanup
+			delete[] namePointers;
+			delete[] ordinalTable;
+			delete[] functionPointers;
+
+			return remoteFunctionAddress;
+		}
+
+		HMODULE GetRemoteModuleHandle(HANDLE hProcess, const char* moduleName)
+		{
+			HMODULE hMods[1024];
+			DWORD cbNeeded;
+
+			// Get a list of all the modules in the remote process
+			if (EnumProcessModules(hProcess, hMods, sizeof(hMods), &cbNeeded))
+			{
+				for (size_t i = 0; i < (cbNeeded / sizeof(HMODULE)); i++)
+				{
+					char modName[MAX_PATH];
+					if (GetModuleBaseNameA(hProcess, hMods[i], modName, sizeof(modName) / sizeof(char)))
+					{
+						if (_stricmp(modName, moduleName) == 0)
+						{
+							return hMods[i]; // Return the module handle (base address)
+						}
+					}
+				}
+			}
+			return nullptr; // Module not found
 		}
 	} // memory
 } // utils

@@ -15,4 +15,6 @@ namespace anticheat {
 	bool CheatingDetected();
 	std::string GetMainStatus();
 	std::string GetInfoStatus();
+
+	bool IsMapValid(const char* map_name);
 }

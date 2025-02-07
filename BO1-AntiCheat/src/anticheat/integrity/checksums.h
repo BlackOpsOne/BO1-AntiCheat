@@ -6,7 +6,7 @@ using namespace std;
 #ifndef Checksums
 #define Checksums
 
-// zone/Common
+// zone\\Common
 const static string CODE_POST_GFX = "ff5f0a17b203daeba771832702e88e1d";
 const static string CODE_POST_GFX_MP = "c841a331e45e5d8e67932afe47867216";
 const static string CODE_PRE_GFX = "8fe4d3b442ab535df140a2b2db7e8fcd";

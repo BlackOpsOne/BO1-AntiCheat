@@ -31,9 +31,22 @@ namespace utils {
 			return hash.c_str();
 		}
 
-		std::string GetSha512(std::string file)
+		std::string GetAntiCheatPath()
 		{
-			return "";
+			char path[MAX_PATH];
+			if (GetModuleFileNameA(NULL, path, MAX_PATH) == 0)
+			{
+				return "";
+			}
+
+			std::string fullPath(path);
+			size_t lastSlash = fullPath.find_last_of("\\/");
+			if (lastSlash == std::string::npos)
+			{
+				return "";
+			}
+
+			return fullPath.substr(0, lastSlash + 1);
 		}
 
 		int SizeInBytes(std::string filePath)

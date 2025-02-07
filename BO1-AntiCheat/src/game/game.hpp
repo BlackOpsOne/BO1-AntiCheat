@@ -5,7 +5,7 @@ namespace game {
 	int GetGameTime();
 	std::string GetZoneCommon();
 	std::string GetZoneLanguage();
-	std::string GetBlackOpsPath();
+	std::string GetGamePath();
 
 	void CheckForAllowedTools();
 

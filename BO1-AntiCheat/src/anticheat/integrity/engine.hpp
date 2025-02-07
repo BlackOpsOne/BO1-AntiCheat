@@ -11,12 +11,20 @@
 #include <map>
 
 #include <vector>
-
 #include <string>
 
 namespace anticheat {
 	namespace integrity {
 		namespace engine {
+			typedef const char* (__cdecl* Dvar_GetString_t)(const char* dvarName);
+
+			struct RemoteData
+			{
+				Dvar_GetString_t Dvar_GetString;
+				const char* dvarName;
+				const char* result;
+			};
+
 			// checks specific engine functions to make sure they are not modified
 			// this is done by scanning the function opcodes
 			std::string ModifiedEngineFunctions();

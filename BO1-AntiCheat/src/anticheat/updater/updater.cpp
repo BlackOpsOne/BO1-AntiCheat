@@ -1,11 +1,14 @@
 #include "updater.hpp"
+
 #include <cpprest/http_client.h>
 #include <cpprest/json.h>
+
 #include <iostream>
 #include <windows.h>
 #include <shellapi.h>
-#include "../../constants.h"
 #include <future>
+
+#include "../../constants.h"
 
 using namespace web;
 using namespace web::http;
@@ -25,7 +28,8 @@ namespace anticheat {
                 http_client_config config;
                 config.set_validate_certificates(true);
 
-                http_client client(U("https://api.github.com/repos/BlackOpsOne/BO1-AntiCheat/releases/latest"), config);
+                uri_builder builder(U("https://api.github.com/repos/BlackOpsOne/BO1-AntiCheat/releases/latest"));
+                http_client client(builder.to_uri(), config);
                 http_request request(methods::GET);
 
                 // Handle the request asynchronously and fulfill the promise once

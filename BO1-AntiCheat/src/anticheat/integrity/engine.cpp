@@ -10,6 +10,8 @@
 
 #include "../../utils/strings.hpp"
 
+#include "dvars.hpp"
+
 namespace anticheat {
 	namespace integrity {
 		namespace engine {
@@ -57,35 +59,40 @@ namespace anticheat {
 					return "";
 				}
 
-				vector<int> player_states = { 0x01A79868, 0x01A79BB4, 0x01A79F00, 0x01A7A24C };
-				vector<string> binds_found;
+				vector<int> player_state_addresses = { 0x01A79868, 0x01A79BB4, 0x01A79F00, 0x01A7A24C };
+				vector<string> modified_player_states;
+
+				if (dvars::CallGetDvarBool("cl_noprint"))
+				{
+					modified_player_states.push_back("No Print");
+				}
 
 				// checks the player states for all 4
 				for (int i = 0; i <= 3; i++)
 				{
-					int demi_god_mode = utils::memory::ReadInt(handle, player_states[i]) & 2;
-					int god_mode = utils::memory::ReadInt(handle, player_states[i]) & 1;
-					int no_target = utils::memory::ReadInt(handle, player_states[i]) & 4;
+					int demi_god_mode = utils::memory::ReadInt(handle, player_state_addresses[i]) & 2;
+					int god_mode = utils::memory::ReadInt(handle, player_state_addresses[i]) & 1;
+					int no_target = utils::memory::ReadInt(handle, player_state_addresses[i]) & 4;
 
 					string player = to_string(i + 1);
 
 					if (demi_god_mode == 2)
 					{
-						binds_found.push_back("Demi God Mode (Player " + player + ")");
+						modified_player_states.push_back("Demi God Mode (Player " + player + ")");
 					}
 
 					if (god_mode == 1)
 					{
-						binds_found.push_back("God Mode (Player " + player + ")");
+						modified_player_states.push_back("God Mode (Player " + player + ")");
 					}
 
 					if (no_target == 4)
 					{
-						binds_found.push_back("No Target (Player " + player + ")");
+						modified_player_states.push_back("No Target (Player " + player + ")");
 					}
 				}
 
-				return utils::strings::FormatVector(binds_found);
+				return utils::strings::FormatVector(modified_player_states);
 			}
 
 			// checks for specific DLL files that should not be injected into bo1

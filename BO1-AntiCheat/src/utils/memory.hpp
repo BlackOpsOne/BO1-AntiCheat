@@ -16,5 +16,15 @@ namespace utils {
 
         // checks if the opcode bytes match
         bool DoOpcodesMatch(const std::vector<BYTE>& actualOpcodes, const std::vector<BYTE>& expectedOpcodes);
+
+        // for dll injection
+        bool InjectDLL(HANDLE process, const char* dll_path);
+
+        // for calling of remote functions
+        FARPROC GetRemoteProcAddress(HANDLE hProcess, HMODULE hModule, const char* functionName);
+        HMODULE GetRemoteModuleHandle(HANDLE hProcess, const char* moduleName);
+
+        HANDLE CreateDvarThread(const char* dvar_name, const char* func_name);
+
     } // memory
 } // utils

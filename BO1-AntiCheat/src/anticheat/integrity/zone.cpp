@@ -429,7 +429,7 @@ namespace anticheat {
             std::string CheckForExtraItemsInZone()
             {
                 vector<string> valid_zones = { "Common", "English", "Japanese", "French", "German", "Italian", "Spanish" };
-                string zone_folder = game::GetBlackOpsPath() + "\\zone\\";
+                string zone_folder = game::GetGamePath() + "\\zone\\";
                 vector<string> extra_zones;
 
                 for (const auto& entry : std::filesystem::directory_iterator(zone_folder)) {
@@ -462,7 +462,7 @@ namespace anticheat {
             {
                 string zone_lower = utils::strings::ToLower(zone_name);
                 vector<string> valid_files = (zone_lower == "common" ? ValidCommonFiles() : GetLanguageValidFiles());
-                string zone_dir = game::GetBlackOpsPath() + "\\zone\\" + zone_name;
+                string zone_dir = game::GetGamePath() + "\\zone\\" + zone_name;
 
                 // check if the folder exists
                 if (!fs::exists(zone_dir))
@@ -513,7 +513,7 @@ namespace anticheat {
 
                 for (const auto& [key, value] : zone_queue)
                 {
-                    string fastfile = game::GetBlackOpsPath() + "\\" + key;
+                    string fastfile = game::GetGamePath() + "\\" + key;
 
                     // don't check files that are not present
                     if (!fs::exists(fastfile))

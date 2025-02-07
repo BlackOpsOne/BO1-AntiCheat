@@ -1,5 +1,5 @@
 **/.vs/*
 **/x64/*
+**/Release/*
 *.aps
-*.vcxproj.user
 bo1-anticheat.ini
