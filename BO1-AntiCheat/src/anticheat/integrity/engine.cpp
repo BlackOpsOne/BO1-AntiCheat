@@ -62,7 +62,7 @@ namespace anticheat {
 				vector<int> player_state_addresses = { 0x01A79868, 0x01A79BB4, 0x01A79F00, 0x01A7A24C };
 				vector<string> modified_player_states;
 
-				if (dvars::CallGetDvarBool("cl_noprint"))
+				if (game::process::IsGameOpen() && dvars::CallGetDvarBool("cl_noprint"))
 				{
 					modified_player_states.push_back("No Print");
 				}
@@ -73,6 +73,11 @@ namespace anticheat {
 					int demi_god_mode = utils::memory::ReadInt(handle, player_state_addresses[i]) & 2;
 					int god_mode = utils::memory::ReadInt(handle, player_state_addresses[i]) & 1;
 					int no_target = utils::memory::ReadInt(handle, player_state_addresses[i]) & 4;
+
+					if (!game::process::IsGameOpen())
+					{
+						return "";
+					}
 
 					string player = to_string(i + 1);
 

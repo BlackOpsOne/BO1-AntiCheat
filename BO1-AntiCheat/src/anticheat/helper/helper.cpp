@@ -37,7 +37,7 @@ namespace anticheat {
 
 		bool InjectHelper()
 		{
-			HANDLE process = game::process::GetBlackOpsProcess();
+			HANDLE handle = game::process::GetBlackOpsProcess();
 			if (!game::process::IsGameOpen())
 			{
 				return false;
@@ -46,7 +46,7 @@ namespace anticheat {
 			std::string anticheatDir = utils::files::GetAntiCheatPath();
 			std::string helperPath = anticheatDir + "\\" + Constants::HELPER_NAME;
 
-			if (!utils::memory::InjectDLL(process, helperPath.c_str()))
+			if (!utils::memory::InjectDLL(handle, helperPath.c_str()))
 			{
 				return false;
 			}

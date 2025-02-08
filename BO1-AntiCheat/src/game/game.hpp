@@ -2,6 +2,7 @@ using std::string;
 
 namespace game {
 	int GetMapId();
+	const char* GetMapName();
 	int GetGameTime();
 	std::string GetZoneCommon();
 	std::string GetZoneLanguage();

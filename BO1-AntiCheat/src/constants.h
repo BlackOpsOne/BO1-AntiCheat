@@ -15,7 +15,5 @@ const static int C_GAMEPAUSED = 0x8902B4;
 
 // map ids
 const static int MAIN_MENU_ID = 5;
-const static int NO_MAP = 0;
-const static int INVALID_MAP = -1;
 
 #endif

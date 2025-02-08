@@ -28,7 +28,7 @@ bool initialized = false;
 bool performed_integrity_check = false;
 bool cheating_detected = false;
 bool notified_cheats_detected = false;
-bool integrity_check_override = false;
+bool check_during_game = false;
 
 const char* current_map = "";
 const char* last_map = "";
@@ -52,6 +52,33 @@ namespace anticheat {
     bool IsMapValid(const char* map_name)
     {
         return map_name != nullptr && std::strcmp(map_name, "") != 0 && std::strcmp(map_name, "frontend") != 0;
+    }
+
+    void OnGameOpened()
+    {
+        if (!helper::InjectHelper())
+        {
+            MessageBoxA(NULL, "Could not initialize helper dll.", "BO1 Anti Cheat (Error)", MB_OK | MB_ICONERROR);
+            ExitProcess(0);
+            return;
+        }
+
+        const char* map_name = game::GetMapName();
+        bool map_not_frontend = std::strcmp(map_name, "frontend") != 0;
+
+        if (IsMapValid(map_name))
+        {
+            check_during_game = true;
+            main_status = Statuses::CHECKING_FOR_PATCHES;
+            info_status = "This may take a moment";
+        }
+        else
+        {
+            main_status = Statuses::GAME_CONNECTED;
+            info_status = "Not in a map";
+        }
+
+        game::CheckForAllowedTools();
     }
 
     // displays the "Game not connected." message
@@ -97,8 +124,14 @@ namespace anticheat {
             return;
         }
 
+        const char* map_name = integrity::dvars::CallGetDvarString("mapname");
+        if (map_name == nullptr)
+        {
+            return;
+        }
+
         last_map = current_map;
-        current_map = integrity::dvars::CallGetDvarString("mapname");
+        current_map = map_name;
 
         bool map_changed = std::strcmp(current_map, last_map) != 0;
         if (map_changed)
@@ -106,20 +139,13 @@ namespace anticheat {
             performed_integrity_check = false;
         }
 
-        bool ff_checking_after_map_load = integrity_check_override && info_status == Statuses::PATCHES_CHECKED_AFTER_MAP_LOAD;
-
         // only check when the map is being loaded/quit
         if (!performed_integrity_check)
         {
-            if (IsMapValid(current_map) || integrity_check_override)
+            if (IsMapValid(current_map) || check_during_game)
             {
                 main_status = Statuses::CHECKING_FOR_PATCHES;
-                if (!ff_checking_after_map_load)
-                {
-                    info_status = "This may take a moment";
-                }
-
-                integrity_check_override = false;
+                info_status = "This may take a moment";
                 performed_integrity_check = true;
 
                 Sleep(1000); // puts us in the loading screen so they cant edit the files
@@ -165,32 +191,24 @@ namespace anticheat {
                 }
 
                 // list off modified common files
-                string modified_fastfiles = integrity::zone::GetModifiedFastFiles();
+                string map_name_str(current_map);
+                string modified_fastfiles = integrity::zone::GetModifiedFastFiles(map_name_str);
                 if (modified_fastfiles != "")
                 {
                     AddCheatFound("Modified fastfiles: " + modified_fastfiles);
                 }
 
-                // if theres any cheats detected, notify them and crash bo1
+                // if theres any cheats detected, make it show on the display, this way people know something wasnt right
                 if (cheats_found.size() > 0)
                 {
                     NotifyCheatsDetected();
                 }
                 else
                 {
-                    // otherwise tell them they're good
+                    // otherwise tell them they're good, but with some special conditions
                     main_status = Statuses::NO_PATCHING_DETECTED;
-
-                    // if we're not checking after map load then notify of extra checks during the game
-                    if (!ff_checking_after_map_load)
-                    {
-                        info_status = Statuses::WILL_CONTINUE_SEARCH;
-                    }
-                    else
-                    {
-                        // notify viewers patches are checked after a map load
-                        info_status = Statuses::PATCHES_CHECKED_AFTER_MAP_LOAD;
-                    }
+                    info_status = check_during_game ? Statuses::PATCHES_CHECKED_AFTER_MAP_LOAD : Statuses::WILL_CONTINUE_SEARCH;
+                    check_during_game = false;
 
                     // we have to disable engine checks for custom-fx
                     if (game::IsCustomFxToolLoaded())
@@ -222,7 +240,7 @@ namespace anticheat {
             }
         }
 
-        if (game::GetMapId() == Constants::MAIN_MENU_ID)
+        if (std::strcmp(map_name, "frontend") == 0)
         {
             main_status = Statuses::GAME_CONNECTED;
             info_status = Statuses::WAITING_FOR_MAP_LOAD_QUIT;
@@ -257,27 +275,7 @@ namespace anticheat {
         // this checks for certain things once, think of it as an "OnGameOpen"
         if (!initialized)
         {
-            if (current_map != "frontend")
-            {
-                info_status = "Not in a map";
-                main_status = Statuses::GAME_CONNECTED;
-
-                // check for patching methods mid game
-                if (IsMapValid(current_map))
-                {
-                    integrity_check_override = true;
-                    info_status = Statuses::PATCHES_CHECKED_AFTER_MAP_LOAD;
-                }
-            }
-
-            if (!helper::InjectHelper())
-            {
-                MessageBoxA(NULL, "Could not initialize helper dll.", "BO1 Anti Cheat (Error)", MB_OK | MB_ICONERROR);
-                ExitProcess(0);
-                return;
-            }
-
-            game::CheckForAllowedTools();
+            OnGameOpened();
             initialized = true;
         }
 

@@ -22,6 +22,8 @@
 
 #include "../utils/files.hpp"
 
+#include "../anticheat/integrity/dvars.hpp"
+
 using namespace std;
 
 bool game_mod_loaded = false;
@@ -41,6 +43,19 @@ namespace game {
 
 		int mapId = utils::memory::ReadInt(handle, Constants::C_MAPADDRESS);
 		return mapId;
+	}
+
+	const char* GetMapName()
+	{
+		const char* map_name = anticheat::integrity::dvars::CallGetDvarString("mapname");
+
+		// this only happens when the game is closing
+		if (map_name == nullptr)
+		{
+			return "";
+		}
+
+		return map_name;
 	}
 
 	// gets the total game time

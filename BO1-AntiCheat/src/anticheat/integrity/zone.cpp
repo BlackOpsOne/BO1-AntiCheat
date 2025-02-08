@@ -18,9 +18,8 @@
 
 using namespace std;
 
-map<string, string> zone_queue;
-
-vector<string> zone_flags;
+vector<ZoneEntry> global_zone_queue; // global files that the game loads no matter the map
+vector<MapZoneEntry> map_zone_queue; // map specific files
 
 namespace fs = std::filesystem;
 
@@ -30,7 +29,174 @@ namespace anticheat {
 
             void InitializeZoneQueue()
             {
-                zone_queue = {
+                map_zone_queue = {
+                    // Kino Der Toten
+                    {
+                        "zombie_theater",
+                        {
+                            { "zone\\Common\\zombie_theater.ff", Checksums::ZOMBIE_THEATER },
+                            { "zone\\Common\\zombie_theater_patch.ff", Checksums::ZOMBIE_THEATER_PATCH },
+                            { "zone\\English\\en_zombie_theater.ff", Checksums::EN_ZOMBIE_THEATER },
+                            { "zone\\Japanese\\ja_zombie_theater.ff", Checksums::JA_ZOMBIE_THEATER },
+                            { "zone\\French\\fr_zombie_theater.ff", Checksums::FR_ZOMBIE_THEATER },
+                            { "zone\\German\\ge_zombie_theater.ff", Checksums::GE_ZOMBIE_THEATER },
+                            { "zone\\Italian\\it_zombie_theater.ff", Checksums::IT_ZOMBIE_THEATER },
+                            { "zone\\Spanish\\sp_zombie_theater.ff", Checksums::SP_ZOMBIE_THEATER }
+                        }
+                    },
+
+                    // Five
+                    {
+                        "zombie_pentagon",
+                        {
+                            { "zone\\Common\\zombie_pentagon.ff", Checksums::ZOMBIE_PENTAGON },
+                            { "zone\\Common\\zombie_pentagon_patch.ff", Checksums::ZOMBIE_PENTAGON_PATCH },
+                            { "zone\\English\\en_zombie_pentagon.ff", Checksums::EN_ZOMBIE_PENTAGON },
+                            { "zone\\Japanese\\ja_zombie_pentagon.ff", Checksums::JA_ZOMBIE_PENTAGON },
+                            { "zone\\French\\fr_zombie_pentagon.ff", Checksums::FR_ZOMBIE_PENTAGON },
+                            { "zone\\German\\ge_zombie_pentagon.ff", Checksums::GE_ZOMBIE_PENTAGON },
+                            { "zone\\Italian\\it_zombie_pentagon.ff", Checksums::IT_ZOMBIE_PENTAGON },
+                            { "zone\\Spanish\\sp_zombie_pentagon.ff", Checksums::SP_ZOMBIE_PENTAGON }
+                        }
+                    },
+
+                    // Dead Ops Arcade
+                    {
+                        "zombietron",
+                        {
+                            { "zone\\Common\\zombietron.ff", Checksums::ZOMBIETRON },
+                            { "zone\\Common\\zombietron_patch.ff", Checksums::ZOMBIETRON_PATCH },
+                            { "zone\\English\\en_zombietron.ff", Checksums::EN_ZOMBIETRON },
+                            { "zone\\Japanese\\ja_zombietron.ff", Checksums::JA_ZOMBIETRON },
+                            { "zone\\French\\fr_zombietron.ff", Checksums::FR_ZOMBIETRON },
+                            { "zone\\German\\ge_zombietron.ff", Checksums::GE_ZOMBIETRON },
+                            { "zone\\Italian\\it_zombietron.ff", Checksums::IT_ZOMBIETRON },
+                            { "zone\\Spanish\\sp_zombietron.ff", Checksums::SP_ZOMBIETRON }
+                        }
+                    },
+
+                    // Ascension
+                    {
+                        "zombie_cosmodrome",
+                        {
+                            { "zone\\Common\\zombie_cosmodrome.ff", Checksums::ZOMBIE_COSMODROME },
+                            { "zone\\Common\\zombie_cosmodrome_patch.ff", Checksums::ZOMBIE_COSMODROME_PATCH },
+                            { "zone\\English\\en_zombie_cosmodrome.ff", Checksums::EN_ZOMBIE_COSMODROME },
+                            { "zone\\Japanese\\ja_zombie_cosmodrome.ff", Checksums::JA_ZOMBIE_COSMODROME },
+                            { "zone\\French\\fr_zombie_cosmodrome.ff", Checksums::FR_ZOMBIE_COSMODROME },
+                            { "zone\\German\\ge_zombie_cosmodrome.ff", Checksums::GE_ZOMBIE_COSMODROME },
+                            { "zone\\Italian\\it_zombie_cosmodrome.ff", Checksums::IT_ZOMBIE_COSMODROME },
+                            { "zone\\Spanish\\sp_zombie_cosmodrome.ff", Checksums::SP_ZOMBIE_COSMODROME }
+                        }
+                    },
+
+                    // Call of The Dead
+                    {
+                        "zombie_coast",
+                        {
+                            { "zone\\Common\\zombie_coast.ff", Checksums::ZOMBIE_COAST },
+                            { "zone\\Common\\zombie_coast_patch.ff", Checksums::ZOMBIE_COAST_PATCH },
+                            { "zone\\English\\en_zombie_coast.ff", Checksums::EN_ZOMBIE_COAST },
+                            { "zone\\Japanese\\ja_zombie_coast.ff", Checksums::JA_ZOMBIE_COAST },
+                            { "zone\\French\\fr_zombie_coast.ff", Checksums::FR_ZOMBIE_COAST },
+                            { "zone\\German\\ge_zombie_coast.ff", Checksums::GE_ZOMBIE_COAST },
+                            { "zone\\Italian\\it_zombie_coast.ff", Checksums::IT_ZOMBIE_COAST },
+                            { "zone\\Spanish\\sp_zombie_coast.ff", Checksums::SP_ZOMBIE_COAST }
+                        }
+                    },
+
+                    // Shangri-La
+                    {
+                        "zombie_temple",
+                        {
+                            { "zone\\Common\\zombie_temple.ff", Checksums::ZOMBIE_TEMPLE },
+                            { "zone\\Common\\zombie_temple_patch.ff", Checksums::ZOMBIE_TEMPLE_PATCH },
+                            { "zone\\English\\en_zombie_temple.ff", Checksums::EN_ZOMBIE_TEMPLE },
+                            { "zone\\Japanese\\ja_zombie_temple.ff", Checksums::JA_ZOMBIE_TEMPLE },
+                            { "zone\\French\\fr_zombie_temple.ff", Checksums::FR_ZOMBIE_TEMPLE },
+                            { "zone\\German\\ge_zombie_temple.ff", Checksums::GE_ZOMBIE_TEMPLE },
+                            { "zone\\Italian\\it_zombie_temple.ff", Checksums::IT_ZOMBIE_TEMPLE },
+                            { "zone\\Spanish\\sp_zombie_temple.ff", Checksums::SP_ZOMBIE_TEMPLE }
+                        }
+                    },
+
+                    // Moon
+                    {
+                        "zombie_moon",
+                        {
+                            { "zone\\Common\\zombie_moon.ff", Checksums::ZOMBIE_MOON },
+                            { "zone\\Common\\zombie_moon_patch.ff", Checksums::ZOMBIE_MOON_PATCH },
+                            { "zone\\English\\en_zombie_moon.ff", Checksums::EN_ZOMBIE_MOON },
+                            { "zone\\Japanese\\ja_zombie_moon.ff", Checksums::JA_ZOMBIE_MOON },
+                            { "zone\\French\\fr_zombie_moon.ff", Checksums::FR_ZOMBIE_MOON },
+                            { "zone\\German\\ge_zombie_moon.ff", Checksums::GE_ZOMBIE_MOON },
+                            { "zone\\Italian\\it_zombie_moon.ff", Checksums::IT_ZOMBIE_MOON },
+                            { "zone\\Spanish\\sp_zombie_moon.ff", Checksums::SP_ZOMBIE_MOON }
+                        }
+                    },
+
+                    // Nacht Der Untoten
+                    {
+                        "zombie_cod5_prototype",
+                        {
+                            { "zone\\Common\\zombie_cod5_prototype.ff", Checksums::ZOMBIE_COD5_PROTOTYPE },
+                            { "zone\\Common\\zombie_cod5_prototype_patch.ff", Checksums::ZOMBIE_COD5_PROTOTYPE_PATCH },
+                            { "zone\\English\\en_zombie_cod5_prototype.ff", Checksums::EN_ZOMBIE_COD5_PROTOTYPE },
+                            { "zone\\Japanese\\ja_zombie_cod5_prototype.ff", Checksums::JA_ZOMBIE_COD5_PROTOTYPE },
+                            { "zone\\French\\fr_zombie_cod5_prototype.ff", Checksums::FR_ZOMBIE_COD5_PROTOTYPE },
+                            { "zone\\German\\ge_zombie_cod5_prototype.ff", Checksums::GE_ZOMBIE_COD5_PROTOTYPE },
+                            { "zone\\Italian\\it_zombie_cod5_prototype.ff", Checksums::IT_ZOMBIE_COD5_PROTOTYPE },
+                            { "zone\\Spanish\\sp_zombie_cod5_prototype.ff", Checksums::SP_ZOMBIE_COD5_PROTOTYPE }
+                        }
+                    },
+
+                    // Verruckt
+                    {
+                        "zombie_cod5_asylum",
+                        {
+                            { "zone\\Common\\zombie_cod5_asylum.ff", Checksums::ZOMBIE_COD5_ASYLUM },
+                            { "zone\\Common\\zombie_cod5_asylum_patch.ff", Checksums::ZOMBIE_COD5_ASYLUM_PATCH },
+                            { "zone\\English\\en_zombie_cod5_asylum.ff", Checksums::EN_ZOMBIE_COD5_ASYLUM },
+                            { "zone\\Japanese\\ja_zombie_cod5_asylum.ff", Checksums::JA_ZOMBIE_COD5_ASYLUM },
+                            { "zone\\French\\fr_zombie_cod5_asylum.ff", Checksums::FR_ZOMBIE_COD5_ASYLUM },
+                            { "zone\\German\\ge_zombie_cod5_asylum.ff", Checksums::GE_ZOMBIE_COD5_ASYLUM },
+                            { "zone\\Italian\\it_zombie_cod5_asylum.ff", Checksums::IT_ZOMBIE_COD5_ASYLUM },
+                            { "zone\\Spanish\\sp_zombie_cod5_asylum.ff", Checksums::SP_ZOMBIE_COD5_ASYLUM }
+                        }
+                    },
+
+                    // Shi No Numa
+                    {
+                        "zombie_cod5_sumpf",
+                        {
+                            { "zone\\Common\\zombie_cod5_sumpf.ff", Checksums::ZOMBIE_COD5_SUMPF },
+                            { "zone\\Common\\zombie_cod5_sumpf_patch.ff", Checksums::ZOMBIE_COD5_SUMPF_PATCH },
+                            { "zone\\English\\en_zombie_cod5_sumpf.ff", Checksums::EN_ZOMBIE_COD5_SUMPF },
+                            { "zone\\Japanese\\ja_zombie_cod5_sumpf.ff", Checksums::JA_ZOMBIE_COD5_SUMPF },
+                            { "zone\\French\\fr_zombie_cod5_sumpf.ff", Checksums::FR_ZOMBIE_COD5_SUMPF },
+                            { "zone\\German\\ge_zombie_cod5_sumpf.ff", Checksums::GE_ZOMBIE_COD5_SUMPF },
+                            { "zone\\Italian\\it_zombie_cod5_sumpf.ff", Checksums::IT_ZOMBIE_COD5_SUMPF },
+                            { "zone\\Spanish\\sp_zombie_cod5_sumpf.ff", Checksums::SP_ZOMBIE_COD5_SUMPF }
+                        }
+                    },
+
+                    // Der Riese
+                    {
+                        "zombie_cod5_factory",
+                        {
+                            { "zone\\Common\\zombie_cod5_factory.ff", Checksums::ZOMBIE_COD5_FACTORY },
+                            { "zone\\Common\\zombie_cod5_factory_patch.ff", Checksums::ZOMBIE_COD5_FACTORY_PATCH },
+                            { "zone\\English\\en_zombie_cod5_factory.ff", Checksums::EN_ZOMBIE_COD5_FACTORY },
+                            { "zone\\Japanese\\ja_zombie_cod5_factory.ff", Checksums::JA_ZOMBIE_COD5_FACTORY },
+                            { "zone\\French\\fr_zombie_cod5_factory.ff", Checksums::FR_ZOMBIE_COD5_FACTORY },
+                            { "zone\\German\\ge_zombie_cod5_factory.ff", Checksums::GE_ZOMBIE_COD5_FACTORY },
+                            { "zone\\Italian\\it_zombie_cod5_factory.ff", Checksums::IT_ZOMBIE_COD5_FACTORY },
+                            { "zone\\Spanish\\sp_zombie_cod5_factory.ff", Checksums::SP_ZOMBIE_COD5_FACTORY }
+                        }
+                    },
+                };
+
+                global_zone_queue = {
                     // Common
                     { "zone\\Common\\code_post_gfx.ff", Checksums::CODE_POST_GFX },
                     { "zone\\Common\\code_post_gfx_mp.ff", Checksums::CODE_POST_GFX_MP },
@@ -40,17 +206,6 @@ namespace anticheat {
                     { "zone\\Common\\common.ff", Checksums::COMMON },
                     { "zone\\Common\\common_zombie.ff", Checksums::COMMON_ZOMBIE },
                     { "zone\\Common\\common_zombie_patch.ff", Checksums::COMMON_ZOMBIE_PATCH },
-                    { "zone\\Common\\zombie_theater_patch.ff", Checksums::ZOMBIE_THEATER_PATCH },
-                    { "zone\\Common\\zombie_pentagon_patch.ff", Checksums::ZOMBIE_PENTAGON_PATCH },
-                    { "zone\\Common\\zombietron_patch.ff", Checksums::ZOMBIETRON_PATCH },
-                    { "zone\\Common\\zombie_cosmodrome_patch.ff", Checksums::ZOMBIE_COSMODROME_PATCH },
-                    { "zone\\Common\\zombie_coast_patch.ff", Checksums::ZOMBIE_COAST_PATCH },
-                    { "zone\\Common\\zombie_temple_patch.ff", Checksums::ZOMBIE_TEMPLE_PATCH },
-                    { "zone\\Common\\zombie_moon_patch.ff", Checksums::ZOMBIE_MOON_PATCH },
-                    { "zone\\Common\\zombie_cod5_prototype_patch.ff", Checksums::ZOMBIE_COD5_PROTOTYPE_PATCH },
-                    { "zone\\Common\\zombie_cod5_asylum_patch.ff", Checksums::ZOMBIE_COD5_ASYLUM_PATCH },
-                    { "zone\\Common\\zombie_cod5_sumpf_patch.ff", Checksums::ZOMBIE_COD5_SUMPF_PATCH },
-                    { "zone\\Common\\zombie_cod5_factory_patch.ff", Checksums::ZOMBIE_COD5_FACTORY_PATCH },
 
                     // English
                     { "zone\\English\\en_frontend.ff", Checksums::EN_FRONTEND },
@@ -60,17 +215,6 @@ namespace anticheat {
                     { "zone\\English\\en_code_pre_gfx_mp.ff", Checksums::EN_CODE_PRE_GFX_MP },
                     { "zone\\English\\en_common.ff", Checksums::EN_COMMON },
                     { "zone\\English\\en_common_zombie.ff", Checksums::EN_COMMON_ZOMBIE },
-                    { "zone\\English\\en_zombie_theater.ff", Checksums::EN_ZOMBIE_THEATER },
-                    { "zone\\English\\en_zombie_pentagon.ff", Checksums::EN_ZOMBIE_PENTAGON },
-                    { "zone\\English\\en_zombietron.ff", Checksums::EN_ZOMBIETRON },
-                    { "zone\\English\\en_zombie_cosmodrome.ff", Checksums::EN_ZOMBIE_COSMODROME },
-                    { "zone\\English\\en_zombie_coast.ff", Checksums::EN_ZOMBIE_COAST },
-                    { "zone\\English\\en_zombie_temple.ff", Checksums::EN_ZOMBIE_TEMPLE },
-                    { "zone\\English\\en_zombie_moon.ff", Checksums::EN_ZOMBIE_MOON },
-                    { "zone\\English\\en_zombie_cod5_prototype.ff", Checksums::EN_ZOMBIE_COD5_PROTOTYPE },
-                    { "zone\\English\\en_zombie_cod5_asylum.ff", Checksums::EN_ZOMBIE_COD5_ASYLUM },
-                    { "zone\\English\\en_zombie_cod5_sumpf.ff", Checksums::EN_ZOMBIE_COD5_SUMPF },
-                    { "zone\\English\\en_zombie_cod5_factory.ff", Checksums::EN_ZOMBIE_COD5_FACTORY },
 
                     // Japanese
                     { "zone\\Japanese\\ja_frontend.ff", Checksums::JA_FRONTEND },
@@ -80,17 +224,6 @@ namespace anticheat {
                     { "zone\\Japanese\\ja_code_pre_gfx_mp.ff", Checksums::JA_CODE_PRE_GFX_MP },
                     { "zone\\Japanese\\ja_common.ff", Checksums::JA_COMMON },
                     { "zone\\Japanese\\ja_common_zombie.ff", Checksums::JA_COMMON_ZOMBIE },
-                    { "zone\\Japanese\\ja_zombie_theater.ff", Checksums::JA_ZOMBIE_THEATER },
-                    { "zone\\Japanese\\ja_zombie_pentagon.ff", Checksums::JA_ZOMBIE_PENTAGON },
-                    { "zone\\Japanese\\ja_zombietron.ff", Checksums::JA_ZOMBIETRON },
-                    { "zone\\Japanese\\ja_zombie_cosmodrome.ff", Checksums::JA_ZOMBIE_COSMODROME },
-                    { "zone\\Japanese\\ja_zombie_coast.ff", Checksums::JA_ZOMBIE_COAST },
-                    { "zone\\Japanese\\ja_zombie_temple.ff", Checksums::JA_ZOMBIE_TEMPLE },
-                    { "zone\\Japanese\\ja_zombie_moon.ff", Checksums::JA_ZOMBIE_MOON },
-                    { "zone\\Japanese\\ja_zombie_cod5_prototype.ff", Checksums::JA_ZOMBIE_COD5_PROTOTYPE },
-                    { "zone\\Japanese\\ja_zombie_cod5_asylum.ff", Checksums::JA_ZOMBIE_COD5_ASYLUM },
-                    { "zone\\Japanese\\ja_zombie_cod5_sumpf.ff", Checksums::JA_ZOMBIE_COD5_SUMPF },
-                    { "zone\\Japanese\\ja_zombie_cod5_factory.ff", Checksums::JA_ZOMBIE_COD5_FACTORY },
 
                     // French
                     { "zone\\French\\fr_frontend.ff", Checksums::FR_FRONTEND },
@@ -100,17 +233,6 @@ namespace anticheat {
                     { "zone\\French\\fr_code_pre_gfx_mp.ff", Checksums::FR_CODE_PRE_GFX_MP },
                     { "zone\\French\\fr_common.ff", Checksums::FR_COMMON },
                     { "zone\\French\\fr_common_zombie.ff", Checksums::FR_COMMON_ZOMBIE },
-                    { "zone\\French\\fr_zombie_theater.ff", Checksums::FR_ZOMBIE_THEATER },
-                    { "zone\\French\\fr_zombie_pentagon.ff", Checksums::FR_ZOMBIE_PENTAGON },
-                    { "zone\\French\\fr_zombietron.ff", Checksums::FR_ZOMBIETRON },
-                    { "zone\\French\\fr_zombie_cosmodrome.ff", Checksums::FR_ZOMBIE_COSMODROME },
-                    { "zone\\French\\fr_zombie_coast.ff", Checksums::FR_ZOMBIE_COAST },
-                    { "zone\\French\\fr_zombie_temple.ff", Checksums::FR_ZOMBIE_TEMPLE },
-                    { "zone\\French\\fr_zombie_moon.ff", Checksums::FR_ZOMBIE_MOON },
-                    { "zone\\French\\fr_zombie_cod5_prototype.ff", Checksums::FR_ZOMBIE_COD5_PROTOTYPE },
-                    { "zone\\French\\fr_zombie_cod5_asylum.ff", Checksums::FR_ZOMBIE_COD5_ASYLUM },
-                    { "zone\\French\\fr_zombie_cod5_sumpf.ff", Checksums::FR_ZOMBIE_COD5_SUMPF },
-                    { "zone\\French\\fr_zombie_cod5_factory.ff", Checksums::FR_ZOMBIE_COD5_FACTORY },
 
                     // German
                     { "zone\\German\\ge_frontend.ff", Checksums::GE_FRONTEND },
@@ -120,17 +242,6 @@ namespace anticheat {
                     { "zone\\German\\ge_code_pre_gfx_mp.ff", Checksums::GE_CODE_PRE_GFX_MP },
                     { "zone\\German\\ge_common.ff", Checksums::GE_COMMON },
                     { "zone\\German\\ge_common_zombie.ff", Checksums::GE_COMMON_ZOMBIE },
-                    { "zone\\German\\ge_zombie_theater.ff", Checksums::GE_ZOMBIE_THEATER },
-                    { "zone\\German\\ge_zombie_pentagon.ff", Checksums::GE_ZOMBIE_PENTAGON },
-                    { "zone\\German\\ge_zombietron.ff", Checksums::GE_ZOMBIETRON },
-                    { "zone\\German\\ge_zombie_cosmodrome.ff", Checksums::GE_ZOMBIE_COSMODROME },
-                    { "zone\\German\\ge_zombie_coast.ff", Checksums::GE_ZOMBIE_COAST },
-                    { "zone\\German\\ge_zombie_temple.ff", Checksums::GE_ZOMBIE_TEMPLE },
-                    { "zone\\German\\ge_zombie_moon.ff", Checksums::GE_ZOMBIE_MOON },
-                    { "zone\\German\\ge_zombie_cod5_prototype.ff", Checksums::GE_ZOMBIE_COD5_PROTOTYPE },
-                    { "zone\\German\\ge_zombie_cod5_asylum.ff", Checksums::GE_ZOMBIE_COD5_ASYLUM },
-                    { "zone\\German\\ge_zombie_cod5_sumpf.ff", Checksums::GE_ZOMBIE_COD5_SUMPF },
-                    { "zone\\German\\ge_zombie_cod5_factory.ff", Checksums::GE_ZOMBIE_COD5_FACTORY },
 
                     // Italian
                     { "zone\\Italian\\it_frontend.ff", Checksums::IT_FRONTEND },
@@ -140,17 +251,6 @@ namespace anticheat {
                     { "zone\\Italian\\it_code_pre_gfx_mp.ff", Checksums::IT_CODE_PRE_GFX_MP },
                     { "zone\\Italian\\it_common.ff", Checksums::IT_COMMON },
                     { "zone\\Italian\\it_common_zombie.ff", Checksums::IT_COMMON_ZOMBIE },
-                    { "zone\\Italian\\it_zombie_theater.ff", Checksums::IT_ZOMBIE_THEATER },
-                    { "zone\\Italian\\it_zombie_pentagon.ff", Checksums::IT_ZOMBIE_PENTAGON },
-                    { "zone\\Italian\\it_zombietron.ff", Checksums::IT_ZOMBIETRON },
-                    { "zone\\Italian\\it_zombie_cosmodrome.ff", Checksums::IT_ZOMBIE_COSMODROME },
-                    { "zone\\Italian\\it_zombie_coast.ff", Checksums::IT_ZOMBIE_COAST },
-                    { "zone\\Italian\\it_zombie_moon.ff", Checksums::IT_ZOMBIE_MOON },
-                    { "zone\\Italian\\it_zombie_temple.ff", Checksums::IT_ZOMBIE_TEMPLE },
-                    { "zone\\Italian\\it_zombie_cod5_prototype.ff", Checksums::IT_ZOMBIE_COD5_PROTOTYPE },
-                    { "zone\\Italian\\it_zombie_cod5_asylum.ff", Checksums::IT_ZOMBIE_COD5_ASYLUM },
-                    { "zone\\Italian\\it_zombie_cod5_sumpf.ff", Checksums::IT_ZOMBIE_COD5_SUMPF },
-                    { "zone\\Italian\\it_zombie_cod5_factory.ff", Checksums::IT_ZOMBIE_COD5_FACTORY },
 
                     // Spanish
                     { "zone\\Spanish\\sp_frontend.ff", Checksums::SP_FRONTEND },
@@ -159,18 +259,7 @@ namespace anticheat {
                     { "zone\\Spanish\\sp_code_pre_gfx.ff", Checksums::SP_CODE_PRE_GFX },
                     { "zone\\Spanish\\sp_code_pre_gfx_mp.ff", Checksums::SP_CODE_PRE_GFX_MP },
                     { "zone\\Spanish\\sp_common.ff", Checksums::SP_COMMON },
-                    { "zone\\Spanish\\sp_common_zombie.ff", Checksums::SP_COMMON_ZOMBIE },
-                    { "zone\\Spanish\\sp_zombietron.ff", Checksums::SP_ZOMBIETRON },
-                    { "zone\\Spanish\\sp_zombie_coast.ff", Checksums::SP_ZOMBIE_COAST },
-                    { "zone\\Spanish\\sp_zombie_cod5_asylum.ff", Checksums::SP_ZOMBIE_COD5_ASYLUM },
-                    { "zone\\Spanish\\sp_zombie_cod5_factory.ff", Checksums::SP_ZOMBIE_COD5_FACTORY },
-                    { "zone\\Spanish\\sp_zombie_cod5_prototype.ff", Checksums::SP_ZOMBIE_COD5_PROTOTYPE },
-                    { "zone\\Spanish\\sp_zombie_cod5_sumpf.ff", Checksums::SP_ZOMBIE_COD5_SUMPF },
-                    { "zone\\Spanish\\sp_zombie_cosmodrome.ff", Checksums::SP_ZOMBIE_COSMODROME },
-                    { "zone\\Spanish\\sp_zombie_moon.ff", Checksums::SP_ZOMBIE_MOON },
-                    { "zone\\Spanish\\sp_zombie_pentagon.ff", Checksums::SP_ZOMBIE_PENTAGON },
-                    { "zone\\Spanish\\sp_zombie_temple.ff", Checksums::SP_ZOMBIE_TEMPLE },
-                    { "zone\\Spanish\\sp_zombie_theater.ff", Checksums::SP_ZOMBIE_THEATER }
+                    { "zone\\Spanish\\sp_common_zombie.ff", Checksums::SP_COMMON_ZOMBIE }
                 };
             }
 
@@ -502,7 +591,7 @@ namespace anticheat {
                 return utils::strings::FormatVector(extra_files);
             }
 
-            std::string GetModifiedFastFiles()
+            std::string GetModifiedFastFiles(std::string map_name)
             {
                 vector<string> modified_fastfiles;
 
@@ -511,41 +600,70 @@ namespace anticheat {
                     return "";
                 }
 
-                for (const auto& [key, value] : zone_queue)
+                // scan the global ff files
+                for (ZoneEntry zone_entry : global_zone_queue)
                 {
-                    string fastfile = game::GetGamePath() + "\\" + key;
+                    std::string ff_name = zone_entry.ff_name;
+                    std::string ff_hash = zone_entry.checksum;
+                    string full_ff_path = game::GetGamePath() + "\\" + ff_name;
 
-                    // don't check files that are not present
-                    if (!fs::exists(fastfile))
+                    if (!IsFFValid(ff_name))
                     {
                         continue;
                     }
 
-                    // make sure we're only scanning files that are in use
-                    if (!IsFFInUse(key))
+                    std::cout << "Scanning FF: " << ff_name << "\n";
+
+                    string file_hash = utils::files::GetMD5(full_ff_path);
+                    if (file_hash != ff_hash)
+                    {
+                        modified_fastfiles.push_back(ff_name);
+                    }
+                }
+
+                // get the map ff files list
+                std::vector<ZoneEntry> map_entries = {};
+                for (MapZoneEntry map_zone : map_zone_queue)
+                {
+                    std::string ff_name = map_zone.map_name;
+                    if (map_zone.map_name == map_name)
+                    {
+                        map_entries = map_zone.zone_entries;
+                        break;
+                    }
+                }
+
+                if (map_entries.size() == 0)
+                {
+                    // somehow we didnt find the map files?
+                    return utils::strings::FormatVector(modified_fastfiles);
+                }
+
+                // scan the map ff files
+                for (ZoneEntry zone_entry : map_entries)
+                {
+                    std::string ff_name = zone_entry.ff_name;
+                    std::string ff_hash = zone_entry.checksum;
+                    string full_ff_path = game::GetGamePath() + "\\" + ff_name;
+
+                    if (!IsFFValid(ff_name))
                     {
                         continue;
                     }
 
-                    // could cause a problem mid check if the game is closed suddenly
-                    if (!game::process::IsGameOpen())
-                    {
-                        return "";
-                    }
+                    std::cout << "\nScanning FF: " << ff_name << "\n";
 
-                    string expected_hash = value;
-                    string file_hash = utils::files::GetMD5(fastfile);
-
-                    if (file_hash != expected_hash)
+                    string file_hash = utils::files::GetMD5(full_ff_path);
+                    if (file_hash != ff_hash)
                     {
-                        modified_fastfiles.push_back(key);
+                        modified_fastfiles.push_back(ff_name);
                     }
                 }
 
                 return utils::strings::FormatVector(modified_fastfiles);
             }
 
-            bool IsFFInUse(std::string ff_path)
+            bool IsLangUsingFF(std::string ff_path)
             {
                 if (utils::strings::ContainsIgnoreCase(ff_path, "zone\\Common"))
                 {
@@ -562,6 +680,31 @@ namespace anticheat {
                 }
 
                 return false;
+            }
+
+            bool IsFFValid(std::string ff_name)
+            {
+                string fastfile = game::GetGamePath() + "\\" + ff_name;
+
+                // we can't scan an ff that doesn't exist
+                if (!fs::exists(fastfile))
+                {
+                    return false;
+                }
+
+                // make sure we're only scanning files that are in use by the language
+                if (!IsLangUsingFF(ff_name))
+                {
+                    return false;
+                }
+
+                // could cause a problem mid check if the game is closed suddenly
+                if (!game::process::IsGameOpen())
+                {
+                    return false;
+                }
+
+                return true;
             }
         }
     }
