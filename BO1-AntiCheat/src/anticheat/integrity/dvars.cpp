@@ -47,7 +47,8 @@ namespace anticheat {
 					{ "developer", 0 },
 					{ "revive_trigger_radius", 75 },
 					{ "player_reviveTriggerRadius", 64 },
-					{ "g_speed", 190 }
+					{ "g_speed", 190 },
+					{ "ai_badPathSpam", 0 }
 				};
 
 				dvar_string_queue = {
