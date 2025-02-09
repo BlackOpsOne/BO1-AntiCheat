@@ -30,7 +30,7 @@ namespace anticheat {
 			typedef unsigned int(__cdecl* Dvar_GetInt_t)(const char* dvar_name);
 			typedef bool(__cdecl* Dvar_GetBool_t)(const char* dvar_name);
 
-			static Dvar_GetString_t Dvar_GetString = reinterpret_cast<Dvar_GetString_t>(0x0057FF80);
+			static Dvar_GetString_t Dvar_GetString = reinterpret_cast<Dvar_GetString_t>(0x57FF80);
 			static Dvar_GetInt_t Dvar_GetInt = reinterpret_cast<Dvar_GetInt_t>(0x636670);
 			static Dvar_GetBool_t Dvar_GetBool = reinterpret_cast<Dvar_GetBool_t>(0x68b030);
 
@@ -43,7 +43,6 @@ namespace anticheat {
 					{ "zombie_reachin_freq", 50 },
 					{ "zombie_taunt_freq", 5 },
 					{ "cg_hudDamageIconTime", 2000 },
-					{ "developer_script", 0 },
 					{ "developer", 0 },
 					{ "revive_trigger_radius", 75 },
 					{ "player_reviveTriggerRadius", 64 },

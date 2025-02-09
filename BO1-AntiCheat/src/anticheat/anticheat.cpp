@@ -224,9 +224,6 @@ namespace anticheat {
                 return;
             }
 
-            /*const char* dvar_name = "revive_trigger_radius";
-            std::cout << dvar_name << " value: " << integrity::dvars::GetDvarInt(dvar_name) << "\n";*/
-
             std::string dvars = integrity::dvars::GetModifiedDvars();
             if (dvars != "")
             {
@@ -243,6 +240,41 @@ namespace anticheat {
                 NotifyCheatsDetected();
                 return;
             }
+
+            // check for filmtweaks on ascension
+            int r_filmUseTweaks = integrity::dvars::GetDvarInt("r_filmUseTweaks");
+            if (r_filmUseTweaks == 1 && utils::strings::ConstCharEquals(current_map, "zombie_cosmodrome"))
+            {
+                AddCheatFound("Film Tweaks are enabled on a map that disallows it.");
+                NotifyCheatsDetected();
+                return;
+            }
+        }
+
+        // always check for developer_script
+        int developer_script = integrity::dvars::GetDvarInt("developer_script");
+        if (developer_script == 1)
+        {
+            AddCheatFound("Developer Scripts were enabled.");
+            NotifyCheatsDetected();
+            return;
+        }
+
+        // check for fps high limit
+        int com_maxfps = integrity::dvars::GetDvarInt("com_maxfps");
+        if (com_maxfps > 250)
+        {
+            AddCheatFound("Max FPS is set higher than 250");
+            NotifyCheatsDetected();
+            return;
+        }
+
+        // check for fps low limit
+        if (com_maxfps < 24)
+        {
+            AddCheatFound("Max FPS is set lower than 24");
+            NotifyCheatsDetected();
+            return;
         }
 
         if (std::strcmp(map_name, "frontend") == 0)
