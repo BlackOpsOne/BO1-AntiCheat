@@ -33,7 +33,7 @@ namespace utils {
 			string result;
 			SIZE_T bytesRead = 0;
 
-			// Read string byte-by-byte until null terminator
+			// Read std::string byte-by-byte until null terminator
 			while (true) {
 				bool success = ReadProcessMemory(processHandle, (LPCVOID)address, &buffer, sizeof(buffer), &bytesRead);
 				if (!success || bytesRead != sizeof(buffer) || buffer == 0) {

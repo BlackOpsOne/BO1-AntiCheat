@@ -24,26 +24,60 @@ namespace anticheat {
 				std::cout << std::dec << std::endl;
 			}*/
 
+			static bool CheckEngineFunction(std::vector<BYTE> expected, std::vector<BYTE> gotten)
+			{
+				if (!gotten.empty() && game::process::IsGameOpen() && !utils::memory::DoOpcodesMatch(gotten, expected))
+				{
+					return false;
+				}
+				return true;
+			}
+
 			std::string ModifiedEngineFunctions()
 			{
 				vector<string> modified_functions;
 
-				// if custom fx is not present, we can check for this safely
-				// we notify users that this check was not run if custom fx is present
+				// check "Com_LoadLevelFastFiles"
 				if (!game::IsCustomFxToolLoaded())
 				{
-					// check "Com_LoadLevelFastFiles", this is how people are stealth patching
-					int Com_LoadLevelFastFiles = 0x004C8890;
-					std::vector<BYTE> expected_ff_opcodes = { 0x83, 0xec, 0x7c, 0x53, 0x55 };
-					std::vector<BYTE> gotten_ff_opcodes = utils::memory::GetFunctionOpcodes((void*)Com_LoadLevelFastFiles, expected_ff_opcodes.size());
-
-					if (!gotten_ff_opcodes.empty() && !utils::memory::DoOpcodesMatch(gotten_ff_opcodes, expected_ff_opcodes))
+					bool func = CheckEngineFunction(
+						{ 0x83, 0xec, 0x7c, 0x53, 0x55 },
+						utils::memory::GetFunctionOpcodes((void*)0x004C8890)
+					);
+					if (!func)
 					{
-						if (game::process::IsGameOpen())
-						{
-							modified_functions.push_back("Com_LoadLevelFastFiles");
-						}
+						modified_functions.push_back("Com_LoadLevelFastFiles");
 					}
+				}
+
+				// check "Dvar_GetString"
+				bool check_Dvar_GetString = CheckEngineFunction(
+					{ 0x8b, 0x44, 0x24, 0x04, 0x85 },
+					utils::memory::GetFunctionOpcodes((void*)0x57FF80)
+				);
+				if (!check_Dvar_GetString)
+				{
+					modified_functions.push_back("Dvar_GetString");
+				}
+
+				// check "Dvar_GetBool"
+				bool check_Dvar_GetBool = CheckEngineFunction(
+					{ 0x8b, 0x44, 0x24, 0x04, 0x85 },
+					utils::memory::GetFunctionOpcodes((void*)0x68B030)
+				);
+				if (!check_Dvar_GetBool)
+				{
+					modified_functions.push_back("Dvar_GetBool");
+				}
+
+				// check "Dvar_GetInt"
+				bool check_Dvar_GetInt = CheckEngineFunction(
+					{ 0x8b, 0x44, 0x24, 0x04, 0x85 },
+					utils::memory::GetFunctionOpcodes((void*)0x636670)
+				);
+				if (!check_Dvar_GetInt)
+				{
+					modified_functions.push_back("Dvar_GetInt");
 				}
 
 				return utils::strings::FormatVector(modified_functions);
@@ -62,11 +96,6 @@ namespace anticheat {
 				vector<int> player_state_addresses = { 0x01A79868, 0x01A79BB4, 0x01A79F00, 0x01A7A24C };
 				vector<string> modified_player_states;
 
-				if (game::process::IsGameOpen() && dvars::CallGetDvarBool("cl_noprint"))
-				{
-					modified_player_states.push_back("No Print");
-				}
-
 				// checks the player states for all 4
 				for (int i = 0; i <= 3; i++)
 				{
@@ -79,21 +108,21 @@ namespace anticheat {
 						return "";
 					}
 
-					string player = to_string(i + 1);
+					std::string player_num = to_string(i + 1);
 
 					if (demi_god_mode == 2)
 					{
-						modified_player_states.push_back("Demi God Mode (Player " + player + ")");
+						modified_player_states.push_back("Demi God Mode (Player " + player_num + ")");
 					}
 
 					if (god_mode == 1)
 					{
-						modified_player_states.push_back("God Mode (Player " + player + ")");
+						modified_player_states.push_back("God Mode (Player " + player_num + ")");
 					}
 
 					if (no_target == 4)
 					{
-						modified_player_states.push_back("No Target (Player " + player + ")");
+						modified_player_states.push_back("No Target (Player " + player_num + ")");
 					}
 				}
 

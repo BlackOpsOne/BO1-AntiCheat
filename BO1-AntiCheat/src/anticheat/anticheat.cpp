@@ -16,8 +16,6 @@
 
 #include "integrity/engine.hpp"
 
-#include "helper/helper.hpp"
-
 #include "integrity/dvars.hpp"
 
 #include "../utils/strings.hpp"
@@ -44,6 +42,9 @@ namespace anticheat {
         // initialize we need to look for in zone
         integrity::zone::InitializeZoneQueue();
 
+        // set which dvars to check
+        integrity::dvars::InitDvarQueue();
+
         // set which config binds are not allowed
         integrity::config::InitializeConfigQueue();
     }
@@ -56,16 +57,7 @@ namespace anticheat {
 
     void OnGameOpened()
     {
-        if (!helper::InjectHelper())
-        {
-            MessageBoxA(NULL, "Could not initialize helper dll.", "BO1 Anti Cheat (Error)", MB_OK | MB_ICONERROR);
-            ExitProcess(0);
-            return;
-        }
-
         const char* map_name = game::GetMapName();
-        bool map_not_frontend = std::strcmp(map_name, "frontend") != 0;
-
         if (IsMapValid(map_name))
         {
             check_during_game = true;
@@ -75,7 +67,7 @@ namespace anticheat {
         else
         {
             main_status = Statuses::GAME_CONNECTED;
-            info_status = "Not in a map";
+            info_status = Statuses::WAITING_FOR_MAP_LOAD_QUIT;
         }
 
         game::CheckForAllowedTools();
@@ -91,7 +83,7 @@ namespace anticheat {
     }
 
     // adds a cheating method to a list, this will be shown in a second window
-    void AddCheatFound(string cheating_method)
+    void AddCheatFound(std::string cheating_method)
     {
         cheats_found.push_back(cheating_method);
     }
@@ -107,8 +99,8 @@ namespace anticheat {
         info_status = Statuses::MORE_INFO_WINDOW;
         notified_cheats_detected = true;
 
-        string cheats = "The following cheating methods were detected:\n";
-        for (string cheat_found : cheats_found)
+        std::string cheats = "The following cheating methods were detected:\n";
+        for (std::string cheat_found : cheats_found)
         {
             cheats += "\n- " + cheat_found;
         }
@@ -124,7 +116,7 @@ namespace anticheat {
             return;
         }
 
-        const char* map_name = integrity::dvars::CallGetDvarString("mapname");
+        const char* map_name = integrity::dvars::GetDvarString("mapname");
         if (map_name == nullptr)
         {
             return;
@@ -151,7 +143,7 @@ namespace anticheat {
                 Sleep(1000); // puts us in the loading screen so they cant edit the files
 
                 // check for modification of actual engine functions
-                string modified_functions = integrity::engine::ModifiedEngineFunctions();
+                std::string modified_functions = integrity::engine::ModifiedEngineFunctions();
                 if (modified_functions != "")
                 {
                     AddCheatFound("Modified engine functions: " + modified_functions);
@@ -164,21 +156,21 @@ namespace anticheat {
                 }
 
                 // check for any unknown zones, can be used to cheat
-                string extra_zones = integrity::zone::CheckForExtraItemsInZone();
+                std::string extra_zones = integrity::zone::CheckForExtraItemsInZone();
                 if (extra_zones != "")
                 {
                     AddCheatFound("Unknown items in zone folder: " + extra_zones);
                 }
 
                 // check for any extra files, they should not be there
-                string extra_common_files = integrity::zone::GetExtraFilesInZone("Common");
+                std::string extra_common_files = integrity::zone::GetExtraFilesInZone("Common");
                 if (extra_common_files != "")
                 {
                     AddCheatFound("Extra files found in zone\\Common, could be a stealth patch: " + extra_common_files);
                 }
 
-                string lang_zone = game::GetLanguageZoneName();
-                string extra_lang_files = integrity::zone::GetExtraFilesInZone(lang_zone);
+                std::string lang_zone = game::GetLanguageZoneName();
+                std::string extra_lang_files = integrity::zone::GetExtraFilesInZone(lang_zone);
                 if (extra_lang_files != "")
                 {
                     AddCheatFound("Extra files found in zone\\Common" + lang_zone + ", could be a stealth patch: " + extra_lang_files);
@@ -191,8 +183,8 @@ namespace anticheat {
                 }
 
                 // list off modified common files
-                string map_name_str(current_map);
-                string modified_fastfiles = integrity::zone::GetModifiedFastFiles(map_name_str);
+                std::string map_name_str(current_map);
+                std::string modified_fastfiles = integrity::zone::GetModifiedFastFiles(map_name_str);
                 if (modified_fastfiles != "")
                 {
                     AddCheatFound("Modified fastfiles: " + modified_fastfiles);
@@ -222,7 +214,7 @@ namespace anticheat {
         // check game values such as godmode, box movable, etc.
         if (IsMapValid(current_map))
         {
-            string playerStates = integrity::engine::GetModifiedPlayerStates();
+            std::string playerStates = integrity::engine::GetModifiedPlayerStates();
             if (playerStates != "")
             {
                 AddCheatFound(playerStates);
@@ -230,8 +222,16 @@ namespace anticheat {
                 return;
             }
 
+            std::string dvars = integrity::dvars::GetModifiedDvars();
+            if (dvars != "")
+            {
+                AddCheatFound("Dvars changed: " + dvars);
+                NotifyCheatsDetected();
+                return;
+            }
+
             // check config but only if its been modified
-            string cheatingCommands = integrity::config::GetCheatingCommands();
+            std::string cheatingCommands = integrity::config::GetCheatingCommands();
             if (cheatingCommands != "")
             {
                 AddCheatFound("Disallowed commands in the config: " + cheatingCommands);
@@ -253,13 +253,6 @@ namespace anticheat {
     {
         if (cheating_detected)
         {
-            return;
-        }
-
-        if (!helper::CheckHelperIntegrity() && !cheating_detected)
-        {
-            AddCheatFound(Constants::HELPER_NAME + " is required to run the anticheat.");
-            NotifyCheatsDetected();
             return;
         }
 

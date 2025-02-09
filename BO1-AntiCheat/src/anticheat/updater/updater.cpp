@@ -75,7 +75,7 @@ namespace anticheat {
             }
             catch (const std::exception&) {
                 MessageBoxA(NULL, Statuses::COULDNT_CHECK_UPDATES.c_str(), "Error", MB_OK);
-                return ""; // Return empty string in case of failure
+                return ""; // Return empty std::string in case of failure
             }
         }
 

@@ -12,16 +12,14 @@
 
 #include <vector>
 
-#include <map>
-
 #include <filesystem>
 
 using namespace std;
 
-vector<ZoneEntry> global_zone_queue; // global files that the game loads no matter the map
-vector<MapZoneEntry> map_zone_queue; // map specific files
-
 namespace fs = std::filesystem;
+
+std::vector<ZoneEntry> global_zone_queue; // global files that the game loads no matter the map
+std::vector<MapZoneEntry> map_zone_queue; // map specific files
 
 namespace anticheat {
     namespace integrity {
@@ -263,7 +261,7 @@ namespace anticheat {
                 };
             }
 
-            static vector<string> ValidCommonFiles()
+            static std::vector<string> ValidCommonFiles()
             {
                 return {
                     "code_post_gfx.ff", "code_post_gfx_mp.ff", "code_pre_gfx.ff",
@@ -302,7 +300,7 @@ namespace anticheat {
                 };
             }
 
-            static vector<string> ValidEnglishFiles()
+            static std::vector<string> ValidEnglishFiles()
             {
                 return {
                     "en_code_post_gfx.ff", "en_code_post_gfx_mp.ff", "en_code_pre_gfx.ff",
@@ -332,7 +330,7 @@ namespace anticheat {
                 };
             }
 
-            static vector<string> ValidJapaneseFiles()
+            static std::vector<string> ValidJapaneseFiles()
             {
                 return {
                     "ja_code_post_gfx.ff", "ja_code_post_gfx_mp.ff", "ja_code_pre_gfx.ff",
@@ -362,7 +360,7 @@ namespace anticheat {
                 };
             }
 
-            static vector<string> ValidFrenchFiles()
+            static std::vector<string> ValidFrenchFiles()
             {
                 return {
                     "fr_code_post_gfx.ff", "fr_code_post_gfx_mp.ff", "fr_code_pre_gfx.ff",
@@ -392,7 +390,7 @@ namespace anticheat {
                 };
             }
 
-            static vector<string> ValidGermanFiles()
+            static std::vector<string> ValidGermanFiles()
             {
                 return {
                     "ge_code_post_gfx.ff", "ge_code_post_gfx_mp.ff", "ge_code_pre_gfx.ff",
@@ -422,7 +420,7 @@ namespace anticheat {
                 };
             }
 
-            static vector<string> ValidItalianFiles()
+            static std::vector<string> ValidItalianFiles()
             {
                 return {
                     "it_code_post_gfx.ff", "it_code_post_gfx_mp.ff", "it_code_pre_gfx.ff",
@@ -452,7 +450,7 @@ namespace anticheat {
                 };
             }
 
-            static vector<string> ValidSpanishFiles()
+            static std::vector<string> ValidSpanishFiles()
             {
                 return {
                     "sp_code_post_gfx.ff", "sp_code_post_gfx_mp.ff", "sp_code_pre_gfx.ff",
@@ -482,10 +480,10 @@ namespace anticheat {
                 };
             }
 
-            static vector<string> GetLanguageValidFiles()
+            static std::vector<string> GetLanguageValidFiles()
             {
-                string lang = game::GetGameLanguage();
-                vector<string> lang_files;
+                std::string lang = game::GetGameLanguage();
+                std::vector<string> lang_files;
 
                 if (lang == "english")
                 {
@@ -517,9 +515,9 @@ namespace anticheat {
 
             std::string CheckForExtraItemsInZone()
             {
-                vector<string> valid_zones = { "Common", "English", "Japanese", "French", "German", "Italian", "Spanish" };
-                string zone_folder = game::GetGamePath() + "\\zone\\";
-                vector<string> extra_zones;
+                std::vector<string> valid_zones = { "Common", "English", "Japanese", "French", "German", "Italian", "Spanish" };
+                std::string zone_folder = game::GetGamePath() + "\\zone\\";
+                std::vector<string> extra_zones;
 
                 for (const auto& entry : std::filesystem::directory_iterator(zone_folder)) {
                     std::string entry_name = entry.path().filename().string();
@@ -549,9 +547,9 @@ namespace anticheat {
 
             std::string GetExtraFilesInZone(std::string zone_name)
             {
-                string zone_lower = utils::strings::ToLower(zone_name);
-                vector<string> valid_files = (zone_lower == "common" ? ValidCommonFiles() : GetLanguageValidFiles());
-                string zone_dir = game::GetGamePath() + "\\zone\\" + zone_name;
+                std::string zone_lower = utils::strings::ToLower(zone_name);
+                std::vector<string> valid_files = (zone_lower == "common" ? ValidCommonFiles() : GetLanguageValidFiles());
+                std::string zone_dir = game::GetGamePath() + "\\zone\\" + zone_name;
 
                 // check if the folder exists
                 if (!fs::exists(zone_dir))
@@ -564,10 +562,10 @@ namespace anticheat {
                     return "";
                 }
 
-                vector<string> extra_files;
+                std::vector<string> extra_files;
                 for (const auto& entry : filesystem::directory_iterator(zone_dir))
                 {
-                    string file_name = entry.path().filename().string();
+                    std::string file_name = entry.path().filename().string();
 
                     // we don't want custom_fx to be there if the tool isnt being used
                     if (zone_lower == "common" && file_name == "custom_fx.ff" && !game::IsCustomFxToolLoaded())
@@ -593,7 +591,7 @@ namespace anticheat {
 
             std::string GetModifiedFastFiles(std::string map_name)
             {
-                vector<string> modified_fastfiles;
+                std::vector<string> modified_fastfiles;
 
                 if (!game::process::IsGameOpen())
                 {
@@ -605,16 +603,14 @@ namespace anticheat {
                 {
                     std::string ff_name = zone_entry.ff_name;
                     std::string ff_hash = zone_entry.checksum;
-                    string full_ff_path = game::GetGamePath() + "\\" + ff_name;
+                    std::string full_ff_path = game::GetGamePath() + "\\" + ff_name;
 
                     if (!IsFFValid(ff_name))
                     {
                         continue;
                     }
 
-                    std::cout << "Scanning FF: " << ff_name << "\n";
-
-                    string file_hash = utils::files::GetMD5(full_ff_path);
+                    std::string file_hash = utils::files::GetMD5(full_ff_path);
                     if (file_hash != ff_hash)
                     {
                         modified_fastfiles.push_back(ff_name);
@@ -644,16 +640,14 @@ namespace anticheat {
                 {
                     std::string ff_name = zone_entry.ff_name;
                     std::string ff_hash = zone_entry.checksum;
-                    string full_ff_path = game::GetGamePath() + "\\" + ff_name;
+                    std::string full_ff_path = game::GetGamePath() + "\\" + ff_name;
 
                     if (!IsFFValid(ff_name))
                     {
                         continue;
                     }
 
-                    std::cout << "\nScanning FF: " << ff_name << "\n";
-
-                    string file_hash = utils::files::GetMD5(full_ff_path);
+                    std::string file_hash = utils::files::GetMD5(full_ff_path);
                     if (file_hash != ff_hash)
                     {
                         modified_fastfiles.push_back(ff_name);
@@ -670,7 +664,7 @@ namespace anticheat {
                     return true;
                 }
                 else {
-                    string expected_folder = "zone\\" + game::GetLanguageZoneName();
+                    std::string expected_folder = "zone\\" + game::GetLanguageZoneName();
 
                     // check if it has the zone folder
                     if (utils::strings::ContainsIgnoreCase(ff_path, expected_folder))
@@ -684,7 +678,7 @@ namespace anticheat {
 
             bool IsFFValid(std::string ff_name)
             {
-                string fastfile = game::GetGamePath() + "\\" + ff_name;
+                std::string fastfile = game::GetGamePath() + "\\" + ff_name;
 
                 // we can't scan an ff that doesn't exist
                 if (!fs::exists(fastfile))

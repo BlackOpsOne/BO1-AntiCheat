@@ -144,20 +144,7 @@ namespace anticheat {
 				}
 
 				file.close();
-
-				// format all cheating commands into a nice list
-				string formatted_commands = "";
-				for (int i = 0; i < config_commands.size(); i++)
-				{
-					string command = config_commands[i];
-					formatted_commands += command;
-					if (i != config_commands.size() - 1)
-					{
-						formatted_commands += ", ";
-					}
-				}
-
-				return formatted_commands;
+				return utils::strings::FormatVector(config_commands);
 			}
 		} // config
 	} // integrity

@@ -13,130 +13,217 @@
 #include "checksums.h"
 #include "../../constants.h"
 
+#include "../../utils/strings.hpp"
+
+#include <vector>
+
+std::vector<DvarIntEntry> dvar_int_queue;
+
 namespace anticheat {
 	namespace integrity {
 		namespace dvars {
-			bool CallGetDvarBool(const char* dvar_name)
+            typedef const char* (__cdecl* Dvar_GetString_t)(const char* dvarName);
+            typedef unsigned int(__cdecl* Dvar_GetInt_t)(const char* dvarName);
+            typedef bool(__cdecl* Dvar_GetBool_t)(const char* dvarName);
+
+            static Dvar_GetString_t Dvar_GetString = reinterpret_cast<Dvar_GetString_t>(0x0057FF80);
+            static Dvar_GetInt_t Dvar_GetInt = reinterpret_cast<Dvar_GetInt_t>(0x636670);
+            static Dvar_GetBool_t Dvar_GetBool = reinterpret_cast<Dvar_GetBool_t>(0x68b030);
+
+            void InitDvarQueue()
+            {
+                dvar_int_queue = {
+                    { "cl_noprint", 0 }
+                };
+            }
+
+			std::string GetModifiedDvars()
 			{
-				HANDLE handle = game::process::GetBlackOpsProcess();
-				if (handle == NULL || handle == INVALID_HANDLE_VALUE)
+				if (!game::process::IsGameOpen())
 				{
-					return -1;
+					return "";
 				}
+                vector<string> modified_dvars;
 
-				// get the module of the helper
-				HMODULE helper_module = utils::memory::GetRemoteModuleHandle(handle, Constants::HELPER_NAME.c_str());
-				if (!helper_module)
-				{
-					return -1;
-				}
+                // check the integer based dvars
+                for (DvarIntEntry int_entry : dvar_int_queue)
+                {
+                    if (!game::process::IsGameOpen())
+                    {
+                        return "";
+                    }
 
-				// get GetDvarBool address
-				FARPROC func_address = utils::memory::GetRemoteProcAddress(handle, helper_module, "GetDvarBool");
-				if (!func_address)
-				{
-					return -1;
-				}
+                    int game_value = GetDvarInt(int_entry.dvar_name);
 
-				// allocate memory for the dvar name
-				size_t len = strlen(dvar_name) + 1;
-				LPVOID dvar_name_alloc = VirtualAllocEx(handle, nullptr, len, MEM_COMMIT | MEM_RESERVE, PAGE_READWRITE);
-				if (!dvar_name_alloc)
-				{
-					return -1;
-				}
+                    if (game_value != int_entry.expected_value)
+                    {
+                        std::string name_str(int_entry.dvar_name);
+                        modified_dvars.push_back(name_str);
+                    }
+                }
 
-				// write the dvar name to memory
-				WriteProcessMemory(handle, dvar_name_alloc, dvar_name, len, nullptr);
-
-				// create thread to call GetDvarBool
-				HANDLE remote_thread = CreateRemoteThread(handle, nullptr, 0, (LPTHREAD_START_ROUTINE)func_address, dvar_name_alloc, 0, nullptr);
-				if (!remote_thread)
-				{
-					VirtualFreeEx(handle, dvar_name_alloc, 0, MEM_RELEASE);
-					return -1;
-				}
-
-				// wait til its done
-				WaitForSingleObject(remote_thread, INFINITE);
-
-				// get return value
-				DWORD return_value;
-				GetExitCodeThread(remote_thread, &return_value);
-
-				// clean up
-				VirtualFreeEx(handle, dvar_name_alloc, 0, MEM_RELEASE);
-				CloseHandle(remote_thread);
-
-				// cast the return value to a boolean
-				int value = static_cast<int>(return_value) & 1;
-				return value == 1;
+                return utils::strings::FormatVector(modified_dvars);
 			}
 
-			int CallGetDvarInt(const char* dvar_name)
-			{
-				return -1;
-			}
+            const char* GetDvarString(const char* dvar_name)
+            {
+                HANDLE handle = game::process::GetBlackOpsProcess();
+                if (!handle)
+                {
+                    return nullptr;
+                }
 
-			const char* CallGetDvarString(const char* dvar_name)
-			{
-				HANDLE handle = game::process::GetBlackOpsProcess();
-				if (handle == NULL || handle == INVALID_HANDLE_VALUE)
-				{
-					return nullptr;
-				}
+                // allocate memory for the dvar name
+                size_t len = strlen(dvar_name) + 1;
+                LPVOID remote_dvar_name = VirtualAllocEx(handle, nullptr, len, MEM_COMMIT | MEM_RESERVE, PAGE_READWRITE);
+                if (!remote_dvar_name)
+                {
+                    return nullptr;
+                }
 
-				// get the module of the helper
-				HMODULE helper_module = utils::memory::GetRemoteModuleHandle(handle, Constants::HELPER_NAME.c_str());
-				if (!helper_module)
-				{
-					return nullptr;
-				}
+                // write the dvar name to the game
+                WriteProcessMemory(handle, remote_dvar_name, dvar_name, len, nullptr);
 
-				// get GetDvarBool address
-				FARPROC func_address = utils::memory::GetRemoteProcAddress(handle, helper_module, "GetDvarString");
-				if (!func_address)
-				{
-					return nullptr;
-				}
+                // allocate memory for the return value
+                LPVOID remote_return_value = VirtualAllocEx(handle, nullptr, sizeof(const char*), MEM_COMMIT | MEM_RESERVE, PAGE_READWRITE);
+                if (!remote_return_value)
+                {
+                    VirtualFreeEx(handle, remote_dvar_name, 0, MEM_RELEASE);
+                    return nullptr;
+                }
 
-				// allocate memory for the dvar name
-				size_t len = strlen(dvar_name) + 1;
-				LPVOID dvar_name_alloc = VirtualAllocEx(handle, nullptr, len, MEM_COMMIT | MEM_RESERVE, PAGE_READWRITE);
-				if (!dvar_name_alloc)
-				{
-					return nullptr;
-				}
+                // create a remote thread to call the function
+                HANDLE remote_thread = CreateRemoteThread(handle, nullptr, 0, (LPTHREAD_START_ROUTINE)Dvar_GetString, remote_dvar_name, 0, nullptr);
+                if (!remote_thread)
+                {
+                    VirtualFreeEx(handle, remote_dvar_name, 0, MEM_RELEASE);
+                    VirtualFreeEx(handle, remote_return_value, 0, MEM_RELEASE);
+                    return nullptr;
+                }
 
-				// write the dvar name to memory
-				WriteProcessMemory(handle, dvar_name_alloc, dvar_name, len, nullptr);
+                // wait for the function to execute
+                WaitForSingleObject(remote_thread, INFINITE);
 
-				// create thread to call GetDvarBool
-				HANDLE remote_thread = CreateRemoteThread(handle, nullptr, 0, (LPTHREAD_START_ROUTINE)func_address, dvar_name_alloc, 0, nullptr);
-				if (!remote_thread)
-				{
-					VirtualFreeEx(handle, dvar_name_alloc, 0, MEM_RELEASE);
-					return nullptr;
-				}
+                // get the return value
+                DWORD return_value;
+                GetExitCodeThread(remote_thread, &return_value);
 
-				// wait til its done
-				WaitForSingleObject(remote_thread, INFINITE);
+                // read the string from memory
+                char buffer[256] = { 0 };
+                ReadProcessMemory(handle, (LPCVOID)return_value, buffer, sizeof(buffer), nullptr);
 
-				// get the return value pointer
-				DWORD return_value;
-				GetExitCodeThread(remote_thread, &return_value);
+                // clean up
+                VirtualFreeEx(handle, remote_dvar_name, 0, MEM_RELEASE);
+                VirtualFreeEx(handle, remote_return_value, 0, MEM_RELEASE);
+                CloseHandle(remote_thread);
 
-				// read the return value pointer
-				char buffer[256] = { 0 };
-				ReadProcessMemory(handle, (LPCVOID)return_value, buffer, sizeof(buffer), nullptr);
+                // return the value (this is a local copy)
+                return _strdup(buffer);
+            }
 
-				// clean up
-				VirtualFreeEx(handle, dvar_name_alloc, 0, MEM_RELEASE);
-				CloseHandle(remote_thread);
+            unsigned int GetDvarInt(const char* dvar_name)
+            {
+                HANDLE process = game::process::GetBlackOpsProcess();
+                if (!process)
+                {
+                    return -1;
+                }
 
-				// return the value, note this is a local copy
-				return _strdup(buffer);
-			}
+                // allocate memory for the dvar name
+                size_t len = strlen(dvar_name) + 1;
+                LPVOID remoteDvarName = VirtualAllocEx(process, nullptr, len, MEM_COMMIT | MEM_RESERVE, PAGE_READWRITE);
+                if (!remoteDvarName)
+                {
+                    return -1;
+                }
+
+                // write the dvar name to the game
+                WriteProcessMemory(process, remoteDvarName, dvar_name, len, nullptr);
+
+                // allocate memory for the return value
+                LPVOID remote_return_value = VirtualAllocEx(process, nullptr, sizeof(unsigned int), MEM_COMMIT | MEM_RESERVE, PAGE_READWRITE);
+                if (!remote_return_value)
+                {
+                    VirtualFreeEx(process, remoteDvarName, 0, MEM_RELEASE);
+                    return -1;
+                }
+
+                // create a remote thread to call the function
+                HANDLE remote_thread = CreateRemoteThread(process, nullptr, 0, (LPTHREAD_START_ROUTINE)Dvar_GetInt, remoteDvarName, 0, nullptr);
+                if (!remote_thread)
+                {
+                    VirtualFreeEx(process, remoteDvarName, 0, MEM_RELEASE);
+                    VirtualFreeEx(process, remote_return_value, 0, MEM_RELEASE);
+                    return -1;
+                }
+
+                // wait for the function to execute
+                WaitForSingleObject(remote_thread, INFINITE);
+
+                // get the return value
+                DWORD return_value;
+                GetExitCodeThread(remote_thread, &return_value);
+
+                // clean up
+                VirtualFreeEx(process, remoteDvarName, 0, MEM_RELEASE);
+                VirtualFreeEx(process, remote_return_value, 0, MEM_RELEASE);
+                CloseHandle(remote_thread);
+
+                // return the value (dvar ints are always an unsigned int)
+                return static_cast<unsigned int>(return_value);
+            }
+
+            bool GetDvarBool(const char* dvar_name)
+            {
+                HANDLE handle = game::process::GetBlackOpsProcess();
+                if (!handle)
+                {
+                    return false;
+                }
+
+                // allocate memory for the dvar name
+                size_t len = strlen(dvar_name) + 1;
+                LPVOID remote_dvar_name = VirtualAllocEx(handle, nullptr, len, MEM_COMMIT | MEM_RESERVE, PAGE_READWRITE);
+                if (!remote_dvar_name)
+                {
+                    return false;
+                }
+
+                // write the dvar name to the game
+                WriteProcessMemory(handle, remote_dvar_name, dvar_name, len, nullptr);
+
+                // allocate memory for the return value
+                LPVOID remote_return_value = VirtualAllocEx(handle, nullptr, sizeof(bool), MEM_COMMIT | MEM_RESERVE, PAGE_READWRITE);
+                if (!remote_return_value)
+                {
+                    VirtualFreeEx(handle, remote_dvar_name, 0, MEM_RELEASE);
+                    return false;
+                }
+
+                // create a remote thread to call the function
+                HANDLE remote_thread = CreateRemoteThread(handle, nullptr, 0, (LPTHREAD_START_ROUTINE)Dvar_GetBool, remote_dvar_name, 0, nullptr);
+                if (!remote_thread)
+                {
+                    VirtualFreeEx(handle, remote_dvar_name, 0, MEM_RELEASE);
+                    VirtualFreeEx(handle, remote_return_value, 0, MEM_RELEASE);
+                    return false;
+                }
+
+                // wait for the function to execute
+                WaitForSingleObject(remote_thread, INFINITE);
+
+                // get the return value
+                DWORD return_value;
+                GetExitCodeThread(remote_thread, &return_value);
+
+                // clean up
+                VirtualFreeEx(handle, remote_dvar_name, 0, MEM_RELEASE);
+                VirtualFreeEx(handle, remote_return_value, 0, MEM_RELEASE);
+                CloseHandle(remote_thread);
+
+                // return the value
+                return static_cast<bool>(return_value);
+            }
 		}
 	}
 }

@@ -47,7 +47,7 @@ namespace game {
 
 	const char* GetMapName()
 	{
-		const char* map_name = anticheat::integrity::dvars::CallGetDvarString("mapname");
+		const char* map_name = anticheat::integrity::dvars::GetDvarString("mapname");
 
 		// this only happens when the game is closing
 		if (map_name == nullptr)

@@ -37,12 +37,12 @@ documentation and/or software.
 #include <iostream>
 
 
-// a small class for calculating MD5 hashes of strings or byte arrays
+// a small class for calculating MD5 hashes of std::strings or byte arrays
 // it is not meant to be fast or secure
 //
 // usage: 1) feed it blocks of uchars with update()
 //      2) finalize()
-//      3) get hexdigest() string
+//      3) get hexdigest() std::string
 //      or
 //      MD5(std::string).hexdigest()
 //
