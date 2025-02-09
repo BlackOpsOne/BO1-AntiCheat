@@ -169,10 +169,10 @@
     <ClInclude Include="src\anticheat\integrity\config.hpp" />
     <ClInclude Include="src\anticheat\integrity\engine.hpp" />
     <ClInclude Include="src\anticheat\integrity\zone.hpp" />
-    <ClInclude Include="src\resources\bo1_png_data.h" />
-    <ClInclude Include="src\resources\bold_font_data.h" />
-    <ClInclude Include="src\resources\icon_png_data.h" />
-    <ClInclude Include="src\resources\semibold_font_data.h" />
+    <ClInclude Include="src\anticheat\resources\bo1_png_data.h" />
+    <ClInclude Include="src\anticheat\resources\bold_font_data.h" />
+    <ClInclude Include="src\anticheat\resources\icon_png_data.h" />
+    <ClInclude Include="src\anticheat\resources\semibold_font_data.h" />
     <ClInclude Include="src\game\process.hpp" />
     <ClInclude Include="src\statuses.h" />
     <ClInclude Include="src\game\game.hpp" />

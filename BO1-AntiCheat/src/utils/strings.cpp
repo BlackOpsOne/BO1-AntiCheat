@@ -4,6 +4,11 @@
 
 namespace utils {
 	namespace strings {
+		bool ConstCharEquals(const char* a, const char* b)
+		{
+			return std::strcmp(a, b) == 0;
+		}
+
 		std::string ToLower(std::string str)
 		{
 			std::transform(str.begin(), str.end(), str.begin(), [](unsigned char c)

@@ -80,6 +80,7 @@ namespace anticheat {
         info_status = Statuses::WAITING_FOR_GAME_TO_OPEN;
         initialized = false;
         performed_integrity_check = false;
+        integrity::dvars::Cleanup();
     }
 
     // adds a cheating method to a list, this will be shown in a second window
@@ -212,7 +213,8 @@ namespace anticheat {
         }
 
         // check game values such as godmode, box movable, etc.
-        if (IsMapValid(current_map))
+        // only do this when the map id is set, thats how we know they're in the map
+        if (IsMapValid(current_map) && game::IsInMap())
         {
             std::string playerStates = integrity::engine::GetModifiedPlayerStates();
             if (playerStates != "")
@@ -222,10 +224,13 @@ namespace anticheat {
                 return;
             }
 
+            /*const char* dvar_name = "revive_trigger_radius";
+            std::cout << dvar_name << " value: " << integrity::dvars::GetDvarInt(dvar_name) << "\n";*/
+
             std::string dvars = integrity::dvars::GetModifiedDvars();
             if (dvars != "")
             {
-                AddCheatFound("Dvars changed: " + dvars);
+                AddCheatFound("Modified Dvars: " + dvars);
                 NotifyCheatsDetected();
                 return;
             }

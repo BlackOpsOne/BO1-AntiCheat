@@ -22,6 +22,7 @@ namespace anticheat {
 	namespace integrity {
 		namespace dvars {
 			void InitDvarQueue();
+			void Cleanup();
 			std::string GetModifiedDvars();
 			const char* GetDvarString(const char* dvarName);
 			unsigned int GetDvarInt(const char* dvar_name);

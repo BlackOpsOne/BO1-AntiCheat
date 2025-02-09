@@ -4,6 +4,7 @@ namespace game {
 	int GetMapId();
 	const char* GetMapName();
 	int GetGameTime();
+	bool IsInMap();
 	std::string GetZoneCommon();
 	std::string GetZoneLanguage();
 	std::string GetGamePath();

@@ -70,6 +70,12 @@ namespace game {
 		return gameTime;
 	}
 
+	bool IsInMap()
+	{
+		int map_id = GetMapId();
+		return map_id != Constants::INVALID_MAP && map_id != Constants::NO_MAP;
+	}
+
 	// gets the path to zone\\Common
 	std::string GetZoneCommon()
 	{

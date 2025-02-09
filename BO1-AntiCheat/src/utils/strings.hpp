@@ -7,6 +7,7 @@
 namespace utils {
 	namespace strings {
 		std::string ToLower(std::string str);
+		bool ConstCharEquals(const char* a, const char* b);
 		bool Contains(std::string& str, std::string& sub);
 		bool ContainsIgnoreCase(const std::string& str, const std::string& substring);
 		bool StartsWith(const std::string& str, const std::string& prefix);

@@ -6,13 +6,13 @@
 
 #include "anticheat/settings/settings.hpp"
 
-#include "resources/bo1_png_data.h"
+#include "anticheat/resources/bo1_png_data.h"
 
-#include "resources/icon_png_data.h"
+#include "anticheat/resources/icon_png_data.h"
 
-#include "resources/bold_font_data.h"
+#include "anticheat/resources/bold_font_data.h"
 
-#include "resources/semibold_font_data.h"
+#include "anticheat/resources/semibold_font_data.h"
 
 #include "utils/strings.hpp"
 
