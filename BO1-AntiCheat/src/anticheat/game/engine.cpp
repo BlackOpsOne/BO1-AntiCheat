@@ -1,19 +1,19 @@
 #include "engine.hpp"
 
-#include "../../game/process.hpp"
+#include "process.hpp"
 
-#include "../../game/game.hpp"
+#include "game.hpp"
 
-#include "../../utils/files.hpp"
+#include "../utils/files.hpp"
 
-#include "../../utils/memory.hpp"
+#include "../utils/memory.hpp"
 
-#include "../../utils/strings.hpp"
+#include "../utils/strings.hpp"
 
 #include "dvars.hpp"
 
 namespace anticheat {
-	namespace integrity {
+	namespace game {
 		namespace engine {
 			// debugging function
 			/*void PrintOpcodes(const std::vector<BYTE>& opcodes) {
@@ -35,7 +35,7 @@ namespace anticheat {
 
 			std::string ModifiedEngineFunctions()
 			{
-				vector<string> modified_functions;
+				std::vector<string> modified_functions;
 
 				// check "Com_LoadLevelFastFiles"
 				if (!game::IsCustomFxToolLoaded())
@@ -93,7 +93,7 @@ namespace anticheat {
 					return "";
 				}
 
-				vector<string> modified_player_states;
+				std::vector<string> modified_player_states;
 
 				const char* corpse_count_str = dvars::GetDvarInt("ai_corpseCount");
 				bool corpse_count_converted;
@@ -107,7 +107,7 @@ namespace anticheat {
 					}
 				}
 
-				vector<int> player_state_addresses = { 0x01A79868, 0x01A79BB4, 0x01A79F00, 0x01A7A24C };
+				std::vector<int> player_state_addresses = { 0x01A79868, 0x01A79BB4, 0x01A79F00, 0x01A7A24C };
 
 				// checks the player states for all 4
 				for (int i = 0; i <= 3; i++)
@@ -121,7 +121,7 @@ namespace anticheat {
 						return "";
 					}
 
-					std::string player_num = to_string(i + 1);
+					std::string player_num = std::to_string(i + 1);
 
 					if (demi_god_mode == 2)
 					{

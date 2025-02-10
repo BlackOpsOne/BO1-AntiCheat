@@ -1,31 +1,24 @@
 #include <SFML/Graphics.hpp>
 
-#include "../constants.h"
+#include "constants.h"
+#include "statuses.h"
 
-#include "../game/game.hpp"
+#include "game/game.hpp"
+#include "game/process.hpp"
+#include "game/zone.hpp"
 
-#include "../game/process.hpp"
+#include "game/config.hpp"
+#include "game/engine.hpp"
+#include "game/dvars.hpp"
 
-#include "integrity/zone.hpp"
-
-#include "../statuses.h"
-
-#include "../utils/memory.hpp"
-
-#include "integrity/config.hpp"
-
-#include "integrity/engine.hpp"
-
-#include "integrity/dvars.hpp"
-
-#include "../utils/strings.hpp"
-
+#include "utils/memory.hpp"
+#include "utils/strings.hpp"
 #include "helper/helper.hpp"
 
-using namespace std;
+#include <vector>
 
 bool initialized = false;
-bool performed_integrity_check = false;
+bool performed_zone_check = false;
 bool cheating_detected = false;
 bool notified_cheats_detected = false;
 bool check_during_game = false;
@@ -33,7 +26,7 @@ bool check_during_game = false;
 const char* current_map = "";
 const char* last_map = "";
 
-vector<std::string> cheats_found;
+std::vector<std::string> cheats_found;
 
 std::string main_status = Statuses::GAME_NOT_CONNECTED;
 std::string info_status = "";
@@ -42,13 +35,13 @@ namespace anticheat {
     void Initialize()
     {
         // initialize we need to look for in zone
-        integrity::zone::InitializeZoneQueue();
+        game::zone::InitializeZoneQueue();
 
         // set which dvars to check
-        integrity::dvars::InitDvarQueue();
+        game::dvars::InitDvarQueue();
 
         // set which config binds are not allowed
-        integrity::config::InitializeConfigQueue();
+        game::config::InitializeConfigQueue();
     }
 
     // make sure the map is actually a map, excluding the main menu map
@@ -88,8 +81,8 @@ namespace anticheat {
         main_status = Statuses::GAME_NOT_CONNECTED;
         info_status = Statuses::WAITING_FOR_GAME_TO_OPEN;
         initialized = false;
-        performed_integrity_check = false;
-        integrity::dvars::Cleanup();
+        performed_zone_check = false;
+        game::dvars::Cleanup();
         game::process::Cleanup();
     }
 
@@ -130,7 +123,7 @@ namespace anticheat {
             return;
         }
 
-        const char* map_name = integrity::dvars::GetDvarString("mapname");
+        const char* map_name = game::dvars::GetDvarString("mapname");
         if (map_name == nullptr)
         {
             return;
@@ -142,22 +135,22 @@ namespace anticheat {
         bool map_changed = std::strcmp(current_map, last_map) != 0;
         if (map_changed)
         {
-            performed_integrity_check = false;
+            performed_zone_check = false;
         }
 
         // only check when the map is being loaded/quit
-        if (!performed_integrity_check)
+        if (!performed_zone_check)
         {
             if (IsMapValid(current_map) || check_during_game)
             {
                 main_status = Statuses::CHECKING_FOR_PATCHES;
                 info_status = "This may take a moment";
-                performed_integrity_check = true;
+                performed_zone_check = true;
 
                 Sleep(1000); // puts us in the loading screen so they cant edit the files
 
                 // check for modification of actual engine functions
-                std::string modified_functions = integrity::engine::ModifiedEngineFunctions();
+                std::string modified_functions = game::engine::ModifiedEngineFunctions();
                 if (modified_functions != "")
                 {
                     AddCheatFound("Modified engine functions: " + modified_functions);
@@ -170,35 +163,35 @@ namespace anticheat {
                 }
 
                 // check for any unknown zones, can be used to cheat
-                std::string extra_zones = integrity::zone::CheckForExtraItemsInZone();
+                std::string extra_zones = game::zone::CheckForExtraItemsInZone();
                 if (extra_zones != "")
                 {
                     AddCheatFound("Unknown items in zone folder: " + extra_zones);
                 }
 
                 // check for any extra files, they should not be there
-                std::string extra_common_files = integrity::zone::GetExtraFilesInZone("Common");
+                std::string extra_common_files = game::zone::GetExtraFilesInZone("Common");
                 if (extra_common_files != "")
                 {
                     AddCheatFound("Extra files found in zone\\Common, could be a stealth patch: " + extra_common_files);
                 }
 
                 std::string lang_zone = game::GetLanguageZoneName();
-                std::string extra_lang_files = integrity::zone::GetExtraFilesInZone(lang_zone);
+                std::string extra_lang_files = game::zone::GetExtraFilesInZone(lang_zone);
                 if (extra_lang_files != "")
                 {
                     AddCheatFound("Extra files found in zone\\Common" + lang_zone + ", could be a stealth patch: " + extra_lang_files);
                 }
 
                 // check for any known stealth patch injections
-                if (integrity::engine::IsStealthPatchInjected())
+                if (game::engine::IsStealthPatchInjected())
                 {
                     AddCheatFound("A known stealth patch DLL was injected.");
                 }
 
                 // list off modified common files
                 std::string map_name_str(current_map);
-                std::string modified_fastfiles = integrity::zone::GetModifiedFastFiles(map_name_str);
+                std::string modified_fastfiles = game::zone::GetModifiedFastFiles(map_name_str);
                 if (modified_fastfiles != "")
                 {
                     AddCheatFound("Modified fastfiles: " + modified_fastfiles);
@@ -229,7 +222,7 @@ namespace anticheat {
         // only do this when the map id is set, thats how we know they're in the map
         if (IsMapValid(current_map) && game::IsInMap())
         {
-            std::string playerStates = integrity::engine::GetModifiedPlayerStates();
+            std::string playerStates = game::engine::GetModifiedPlayerStates();
             if (playerStates != "")
             {
                 AddCheatFound(playerStates);
@@ -237,7 +230,7 @@ namespace anticheat {
                 return;
             }
 
-            std::string dvars = integrity::dvars::GetModifiedDvars();
+            std::string dvars = game::dvars::GetModifiedDvars();
             if (dvars != "")
             {
                 AddCheatFound("Modified Dvars: " + dvars);
@@ -246,7 +239,7 @@ namespace anticheat {
             }
 
             // check config but only if its been modified
-            std::string cheatingCommands = integrity::config::GetCheatingCommands();
+            std::string cheatingCommands = game::config::GetCheatingCommands();
             if (cheatingCommands != "")
             {
                 AddCheatFound("Disallowed commands in the config: " + cheatingCommands);
@@ -255,7 +248,7 @@ namespace anticheat {
             }
 
             // check for filmtweaks on ascension
-            const char* r_filmUseTweaks = integrity::dvars::GetDvarInt("r_filmUseTweaks");
+            const char* r_filmUseTweaks = game::dvars::GetDvarInt("r_filmUseTweaks");
             if (utils::strings::CompareConstChar(r_filmUseTweaks, "1") 
                 && utils::strings::CompareConstChar(current_map, "zombie_cosmodrome"))
             {
@@ -266,7 +259,7 @@ namespace anticheat {
         }
 
         // always check for developer_script
-        const char* developer_script = integrity::dvars::GetDvarInt("developer_script");
+        const char* developer_script = game::dvars::GetDvarInt("developer_script");
         if (utils::strings::CompareConstChar(developer_script, "1"))
         {
             AddCheatFound("Developer Scripts were enabled.");
@@ -276,7 +269,7 @@ namespace anticheat {
 
         // fps checks
 
-        const char* com_maxfps_str = integrity::dvars::GetDvarInt("com_maxfps");
+        const char* com_maxfps_str = game::dvars::GetDvarInt("com_maxfps");
         bool maxfps_converted = false;
         int com_maxfps = utils::strings::ToInt(com_maxfps_str, maxfps_converted);
 
@@ -303,7 +296,7 @@ namespace anticheat {
         {
             main_status = Statuses::GAME_CONNECTED;
             info_status = Statuses::WAITING_FOR_MAP_LOAD_QUIT;
-            performed_integrity_check = false;
+            performed_zone_check = false;
         }
     }
 

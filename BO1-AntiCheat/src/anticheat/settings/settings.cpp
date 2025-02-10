@@ -89,5 +89,5 @@ namespace anticheat {
 
 			return "";
 		}
-	}
-}
+	} // settings
+} // anticheat

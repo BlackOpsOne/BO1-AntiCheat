@@ -5,7 +5,7 @@
 #include <cctype>
 
 namespace anticheat {
-	namespace integrity {
+	namespace game {
 		namespace config {
 			struct ConfigDvar {
 				std::string name;
@@ -15,5 +15,5 @@ namespace anticheat {
 			void InitializeConfigQueue();
 			std::string GetCheatingCommands();
 		} // config
-	} // integrity
+	} // game
 } // anticheat

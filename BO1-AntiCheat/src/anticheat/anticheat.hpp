@@ -1,8 +1,4 @@
-#include <string>
-
-#include "../statuses.h"
-
-using namespace std;
+#include "statuses.h"
 
 namespace anticheat {
 	void Initialize();

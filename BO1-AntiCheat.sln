@@ -5,7 +5,7 @@ VisualStudioVersion = 17.6.33723.286
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "BO1-AntiCheat", "BO1-AntiCheat\BO1-AntiCheat.vcxproj", "{1ADCF9D5-3FE7-4709-A6A1-026FB857BA4E}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "BO1-Helper", "BO1-Helper\BO1-Helper.vcxproj", "{03D94E32-553D-4BE2-857A-7EC9F8F412E6}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "T5-Internals", "T5-Internals\T5-Internals.vcxproj", "{03D94E32-553D-4BE2-857A-7EC9F8F412E6}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

@@ -11,46 +11,12 @@
 LPVOID original_LoadLibraryA = nullptr;
 LPVOID original_LoadLibraryW = nullptr;
 
-bool isSystemDLL(LPCWSTR moduleName)
-{
-    WCHAR fullPath[MAX_PATH] = { 0 };
-
-    if (!SearchPathW(NULL, moduleName, NULL, MAX_PATH, fullPath, NULL))
-    {
-        return false;
-    }
-
-    WCHAR systemPath[MAX_PATH] = { 0 };
-    if (!GetSystemDirectoryW(systemPath, MAX_PATH))
-    {
-        return false;
-    }
-
-    if (PathIsPrefixW(systemPath, fullPath) || wcsstr(fullPath, L"\\System32\\") != nullptr)
-    {
-        return true;
-    }
-
-    return false;
-}
-
-bool isModuleAllowedW(LPCWSTR moduleName)
-{
-    return isSystemDLL(moduleName);
-}
-
-bool isModuleAllowedA(LPCSTR moduleName)
-{
-    std::wstring wideModuleName = std::wstring(moduleName, moduleName + strlen(moduleName));
-    return isSystemDLL(wideModuleName.c_str());
-}
-
 extern "C" {
     __declspec(dllexport) HMODULE WINAPI Hooked_LoadLibraryA(LPCSTR lpLibFileName)
     {
         if (lpLibFileName)
         {
-            if (!isModuleAllowedA(lpLibFileName))
+            if (!anticheat::hooks::IsModuleAllowedA(lpLibFileName))
             {
                 SetLastError(ERROR_ACCESS_DENIED);
                 return NULL;
@@ -63,7 +29,7 @@ extern "C" {
     {
         if (lpLibFileName)
         {
-            if (!isModuleAllowedW(lpLibFileName))
+            if (!anticheat::hooks::IsModuleAllowedW(lpLibFileName))
             {
                 SetLastError(ERROR_ACCESS_DENIED);
                 return NULL;
@@ -75,6 +41,40 @@ extern "C" {
 
 namespace anticheat {
     namespace hooks {
+        bool IsSystemDLL(LPCWSTR module_name)
+        {
+            WCHAR full_path[MAX_PATH] = { 0 };
+
+            if (!SearchPathW(NULL, module_name, NULL, MAX_PATH, full_path, NULL))
+            {
+                return false;
+            }
+
+            WCHAR system_path[MAX_PATH] = { 0 };
+            if (!GetSystemDirectoryW(system_path, MAX_PATH))
+            {
+                return false;
+            }
+
+            if (PathIsPrefixW(system_path, full_path) || wcsstr(full_path, L"\\System32\\") != nullptr)
+            {
+                return true;
+            }
+
+            return false;
+        }
+
+        bool IsModuleAllowedW(LPCWSTR module_name)
+        {
+            return IsSystemDLL(module_name);
+        }
+
+        bool IsModuleAllowedA(LPCSTR module_name)
+        {
+            std::wstring wide_name = std::wstring(module_name, module_name + strlen(module_name));
+            return IsSystemDLL(wide_name.c_str());
+        }
+
         bool Initialize()
         {
             HMODULE kernel32 = GetModuleHandle(L"kernel32.dll");

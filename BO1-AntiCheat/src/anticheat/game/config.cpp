@@ -1,15 +1,11 @@
 #include "config.hpp"
 
-#include "../../game/game.hpp"
-
-#include "../../utils/strings.hpp"
-
-#include "../../utils/files.hpp"
-
-using namespace std;
+#include "game.hpp"
+#include "../utils/strings.hpp"
+#include "../utils/files.hpp"
 
 namespace anticheat {
-	namespace integrity {
+	namespace game {
 		namespace config {
 			int last_config_size = 0;
 			std::vector<ConfigDvar> cheating_commands;
@@ -83,7 +79,7 @@ namespace anticheat {
 				std::string config_path = game::GetGamePath() + "\\players\\config.cfg";
 
 				// check if the config exists
-				if (!filesystem::exists(config_path))
+				if (!std::filesystem::exists(config_path))
 				{
 					return "";
 				}
@@ -112,7 +108,7 @@ namespace anticheat {
 					return "";
 				}
 
-				vector<string> config_commands;
+				std::vector<std::string> config_commands;
 
 				// go through each line
 				std::string line;
@@ -147,5 +143,5 @@ namespace anticheat {
 				return utils::strings::FormatVector(config_commands);
 			}
 		} // config
-	} // integrity
+	} // game
 } // anticheat

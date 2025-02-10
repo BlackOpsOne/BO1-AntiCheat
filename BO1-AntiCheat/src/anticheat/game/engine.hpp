@@ -1,4 +1,4 @@
-#include <Windows.h>
+#include <windows.h>
 
 #include <TlHelp32.h>
 
@@ -14,7 +14,7 @@
 #include <string>
 
 namespace anticheat {
-	namespace integrity {
+	namespace game {
 		namespace engine {
 			// checks specific engine functions to make sure they are not modified
 			// this is done by scanning the function opcodes
@@ -27,6 +27,6 @@ namespace anticheat {
 			// these will be kept around just in case
 			bool IsStealthPatchInjected();
 			bool IsSuspiciousModule(HMODULE hModule, HANDLE hProcess);
-		}
-	}
-}
+		} // engine
+	} // game
+} // anticheat

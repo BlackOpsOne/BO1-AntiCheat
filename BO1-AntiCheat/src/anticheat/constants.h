@@ -1,11 +1,13 @@
-﻿#ifndef Constants
+﻿#include <string>
+
+#ifndef Constants
 #define Constants
 
-const static std::string VERSION = "1.0.1";
+const static std::string VERSION = "1.0.2";
 const static std::string GUIDELINES = "- Show the BO1-AntiCheat.exe file properties. Right click -> Properties, the exact amount of bytes of \"Size on disk\" must be shown.\n- Show yourself opening the same tool.\n- Display the tool on your stream/recording.";
 
 const static std::string HELPER_NAME = "BO1-AntiCheat.dll";
-const static std::string HELPER_MD5 = "d73af3d99008d41cba4087f4f3b061c1";
+const static std::string HELPER_MD5 = "3e20ba736e9aea7de8a3dcd4f9e7b093";
 
 // addresses
 const static int C_MAPADDRESS = 0x02F67B6C;

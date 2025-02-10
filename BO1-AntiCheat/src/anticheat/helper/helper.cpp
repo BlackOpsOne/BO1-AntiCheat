@@ -1,14 +1,13 @@
 #include "helper.hpp"
 
-#include <iostream>
 #include <filesystem>
 
-#include "../../game/process.hpp"
-#include "../../game/game.hpp"
-#include "../../utils/files.hpp"
-#include "../integrity/checksums.h"
-#include "../../constants.h"
-#include "../../utils/memory.hpp"
+#include "../game/process.hpp"
+#include "../game/game.hpp"
+#include "../utils/files.hpp"
+#include "../checksums.h"
+#include "../utils/memory.hpp"
+#include "../constants.h"
 
 namespace fs = std::filesystem;
 

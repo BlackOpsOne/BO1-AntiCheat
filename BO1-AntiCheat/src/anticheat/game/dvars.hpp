@@ -7,7 +7,7 @@ struct DvarValueEntry
 };
 
 namespace anticheat {
-	namespace integrity {
+	namespace game {
 		namespace dvars {
 			void InitDvarQueue();
 			void Cleanup();

@@ -14,11 +14,11 @@
 
 #include "anticheat/resources/semibold_font_data.h"
 
-#include "utils/strings.hpp"
+#include "anticheat/utils/strings.hpp"
 
 #include "anticheat/hooks/hooks.hpp"
 
-#include "constants.h"
+#include "anticheat/constants.h"
 
 #include <thread>
 
@@ -69,7 +69,7 @@ static void CheckForBlackOpsProcessThread()
 	while (processThreadRunning)
 	{
 		anticheat::WaitForBlackOpsProcess();
-		this_thread::sleep_for(std::chrono::milliseconds(100));
+		std::this_thread::sleep_for(std::chrono::milliseconds(100));
 	}
 }
 
@@ -93,7 +93,7 @@ static void CheckForDebugger()
 			ExitProcess(1);
 		}
 
-		this_thread::sleep_for(std::chrono::milliseconds(100));
+		std::this_thread::sleep_for(std::chrono::milliseconds(100));
 	}
 }
 
@@ -171,7 +171,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	anticheat::settings::LoadSettings();
 
 	// check for any debugger tools
-	thread checkDebuggerThread(CheckForDebugger);
+	std::thread checkDebuggerThread(CheckForDebugger);
 
 	int main_window_width = 650;
 	int main_window_height = 159;
@@ -352,7 +352,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	// make sure players are aware of the guidelines with the tool
 	bool guidelines_window_closed = false;
 	std::string display_guidelines = anticheat::settings::GetValue("DisplayGuidelines");
-	if (utils::strings::ToLower(display_guidelines) == "true")
+	if (anticheat::utils::strings::ToLower(display_guidelines) == "true")
 	{
 		int guidelines_window_width = 650;
 		int guidelines_window_height = 395;
@@ -452,12 +452,12 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	}
 
 	// start the game process thread
-	thread checkProcessThread(CheckForBlackOpsProcessThread);
+	std::thread checkProcessThread(CheckForBlackOpsProcessThread);
 
 	anticheatText.setPosition(((main_window_width - anticheatTextWidth) / 2) + padding, 21);
 
 	// add some "dynamicness" to it
-	sf::Text epochTime(utils::strings::GetCurrentEpoch(), semi_bold_font, 15);
+	sf::Text epochTime(anticheat::utils::strings::GetCurrentEpoch(), semi_bold_font, 15);
 	epochTime.setFillColor(sf::Color(255, 255, 255, 155));
 	epochTime.setPosition((main_window_width - epochTime.getGlobalBounds().width) / 2, 132);
 
@@ -508,7 +508,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 		extraStatusText.setPosition((main_window_width - extraStatusTextWidth) / 2, 80);
 
 		// display current epoch
-		epochTime.setString(utils::strings::GetCurrentEpoch());
+		epochTime.setString(anticheat::utils::strings::GetCurrentEpoch());
 		epochTime.setPosition((main_window_width - epochTime.getGlobalBounds().width) / 2, 129);
 
 		// draw everything to the main_window

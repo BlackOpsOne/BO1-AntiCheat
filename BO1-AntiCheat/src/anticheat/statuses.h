@@ -1,8 +1,6 @@
-#include <Windows.h>
+#include <windows.h>
 
 #include <string>
-
-using namespace std;
 
 #ifndef Statuses
 #define Statuses

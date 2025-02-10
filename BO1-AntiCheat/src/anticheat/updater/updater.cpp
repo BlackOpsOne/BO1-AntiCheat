@@ -8,7 +8,8 @@
 #include <shellapi.h>
 #include <future>
 
-#include "../../constants.h"
+#include "../constants.h"
+#include "../statuses.h"
 
 using namespace web;
 using namespace web::http;
@@ -17,7 +18,6 @@ using namespace std;
 
 namespace anticheat {
     namespace updater {
-
         std::string GetAvailableUpdates() {
             // Promise to return the result synchronously
             std::promise<std::string> updatePromise;
@@ -75,9 +75,8 @@ namespace anticheat {
             }
             catch (const std::exception&) {
                 MessageBoxA(NULL, Statuses::COULDNT_CHECK_UPDATES.c_str(), "Error", MB_OK);
-                return ""; // Return empty std::string in case of failure
+                return ""; // Return empty string in case of failure
             }
         }
-
     } // updater
 } // anticheat

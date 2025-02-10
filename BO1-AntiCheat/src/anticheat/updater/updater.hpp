@@ -1,4 +1,4 @@
-#include "../../statuses.h"
+#include <string>
 
 namespace anticheat {
 	namespace updater {

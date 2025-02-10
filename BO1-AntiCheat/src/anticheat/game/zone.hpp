@@ -12,7 +12,7 @@ struct MapZoneEntry {
 };
 
 namespace anticheat {
-	namespace integrity {
+	namespace game {
 		namespace zone {
 			// initialize the zone files queue
 			void InitializeZoneQueue();

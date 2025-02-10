@@ -4,16 +4,15 @@
 #include <iostream>
 #include <filesystem>
 
-#include "../../utils/files.hpp"
-#include "../../utils/memory.hpp"
+#include "../utils/files.hpp"
+#include "../utils/memory.hpp"
 
-#include "../../game/process.hpp"
-#include "../../game/game.hpp"
+#include "process.hpp"
+#include "game.hpp"
 
-#include "checksums.h"
-#include "../../constants.h"
-
-#include "../../utils/strings.hpp"
+#include "../checksums.h"
+#include "../constants.h"
+#include "../utils/strings.hpp"
 
 #include <vector>
 
@@ -25,7 +24,7 @@ bool zombie_taunt_initalized = false;
 bool zombie_reachin_initalized = false;
 
 namespace anticheat {
-	namespace integrity {
+	namespace game {
 		namespace dvars {
 			void InitDvarQueue()
 			{
@@ -67,7 +66,7 @@ namespace anticheat {
 				{
 					return "";
 				}
-				vector<string> modified_dvars;
+				std::vector<string> modified_dvars;
 
 				// check the integer based dvars
 				for (DvarValueEntry int_entry : dvar_int_queue)
@@ -243,7 +242,7 @@ namespace anticheat {
 					return nullptr;
 				}
 
-				// Allocate memory in the remote process for the Dvar name
+				// Allocate memory in the game process for the Dvar name
 				size_t len = strlen(dvar_name) + 1;
 				LPVOID dvar_name_alloc = VirtualAllocEx(handle, nullptr, len, MEM_COMMIT | MEM_RESERVE, PAGE_READWRITE);
 				if (!dvar_name_alloc)
@@ -251,10 +250,10 @@ namespace anticheat {
 					return nullptr;
 				}
 
-				// Write the Dvar name to the remote process memory
+				// Write the Dvar name to the game process memory
 				WriteProcessMemory(handle, dvar_name_alloc, dvar_name, len, nullptr);
 
-				// Create thread in remote process to call the function
+				// Create thread in the game process to call the function
 				HANDLE remote_thread = CreateRemoteThread(handle, nullptr, 0, (LPTHREAD_START_ROUTINE)func_address, dvar_name_alloc, 0, nullptr);
 				if (!remote_thread)
 				{
@@ -269,7 +268,7 @@ namespace anticheat {
 				DWORD remote_ptr;
 				GetExitCodeThread(remote_thread, &remote_ptr);
 
-				if (!remote_ptr)  // Check if allocation in the remote process failed
+				if (!remote_ptr)  // Check if allocation in the game process failed
 				{
 					VirtualFreeEx(handle, dvar_name_alloc, 0, MEM_RELEASE);
 					CloseHandle(remote_thread);
@@ -280,9 +279,11 @@ namespace anticheat {
 				char buffer[256] = { 0 };
 				ReadProcessMemory(handle, (LPCVOID)remote_ptr, buffer, sizeof(buffer), nullptr);
 
-				// Free allocated memory in remote process
+				// Free allocated memory in the game process
 				VirtualFreeEx(handle, dvar_name_alloc, 0, MEM_RELEASE);
-				VirtualFreeEx(handle, (LPVOID)remote_ptr, 0, MEM_RELEASE); // Free the string memory
+
+				// Free string memory
+				VirtualFreeEx(handle, (LPVOID)remote_ptr, 0, MEM_RELEASE);
 				CloseHandle(remote_thread);
 
 				// Return a local copy

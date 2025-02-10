@@ -1,20 +1,13 @@
 #include "zone.hpp"
 
-#include "../../game/game.hpp"
+#include "game.hpp"
+#include "process.hpp"
+#include "../checksums.h"
 
-#include "../../game/process.hpp"
-
-#include "checksums.h"
-
-#include "../../utils/files.hpp"
-
-#include "../../utils/strings.hpp"
-
-#include <vector>
+#include "../utils/files.hpp"
+#include "../utils/strings.hpp"
 
 #include <filesystem>
-
-using namespace std;
 
 namespace fs = std::filesystem;
 
@@ -22,7 +15,7 @@ std::vector<ZoneEntry> global_zone_queue; // global files that the game loads no
 std::vector<MapZoneEntry> map_zone_queue; // map specific files
 
 namespace anticheat {
-    namespace integrity {
+    namespace game {
         namespace zone {
 
             void InitializeZoneQueue()
@@ -563,7 +556,7 @@ namespace anticheat {
                 }
 
                 std::vector<string> extra_files;
-                for (const auto& entry : filesystem::directory_iterator(zone_dir))
+                for (const auto& entry : std::filesystem::directory_iterator(zone_dir))
                 {
                     std::string file_name = entry.path().filename().string();
 
@@ -610,7 +603,7 @@ namespace anticheat {
                         continue;
                     }
 
-                    std::string file_hash = utils::files::GetMD5(full_ff_path);
+                    std::string file_hash = anticheat::utils::files::GetMD5(full_ff_path);
                     if (file_hash != ff_hash)
                     {
                         modified_fastfiles.push_back(ff_name);
