@@ -7,7 +7,7 @@ A tool for competitive Black Ops Zombies specifically designed to catch people c
 
 - For coop games, only the host will need to use it.
 
-- The official Steam languages can be used with this tool.
+- Only official Steam languages can be used with this tool.
 	- Unofficial language files can not be trusted to be legitimate.
 
 ### Guidelines
