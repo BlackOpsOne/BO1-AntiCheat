@@ -95,10 +95,16 @@ namespace anticheat {
 
 				vector<string> modified_player_states;
 
-				int corpse_count = dvars::GetDvarInt("ai_corpseCount");
-				if (corpse_count < 3)
+				const char* corpse_count_str = dvars::GetDvarInt("ai_corpseCount");
+				bool corpse_count_converted;
+				int corpse_count = utils::strings::ToInt(corpse_count_str, corpse_count_converted);
+
+				if (corpse_count_converted)
 				{
-					modified_player_states.push_back("Modified Tiny Corpses (less than the normal count)");
+					if (corpse_count < 3)
+					{
+						modified_player_states.push_back("Modified Tiny Corpses (less than the normal count)");
+					}
 				}
 
 				vector<int> player_state_addresses = { 0x01A79868, 0x01A79BB4, 0x01A79F00, 0x01A7A24C };

@@ -17,8 +17,9 @@
 
 #include <vector>
 
-std::vector<DvarIntEntry> dvar_int_queue;
-std::vector<DvarStringEntry> dvar_string_queue;
+std::vector<DvarValueEntry> dvar_int_queue;
+std::vector<DvarValueEntry> dvar_str_queue;
+std::vector<DvarValueEntry> dvar_double_entry;
 
 bool zombie_taunt_initalized = false;
 bool zombie_reachin_initalized = false;
@@ -26,34 +27,31 @@ bool zombie_reachin_initalized = false;
 namespace anticheat {
 	namespace integrity {
 		namespace dvars {
-			typedef const char* (__cdecl* Dvar_GetString_t)(const char* dvar_name);
-			typedef unsigned int(__cdecl* Dvar_GetInt_t)(const char* dvar_name);
-			typedef bool(__cdecl* Dvar_GetBool_t)(const char* dvar_name);
-
-			static Dvar_GetString_t Dvar_GetString = reinterpret_cast<Dvar_GetString_t>(0x57FF80);
-			static Dvar_GetInt_t Dvar_GetInt = reinterpret_cast<Dvar_GetInt_t>(0x636670);
-			static Dvar_GetBool_t Dvar_GetBool = reinterpret_cast<Dvar_GetBool_t>(0x68b030);
-
 			void InitDvarQueue()
 			{
 				dvar_int_queue = {
-					{ "cl_noprint", 0 },
-					{ "magic_chest_movable", 1 },
-					{ "ai_disableSpawn", 0 },
-					{ "zombie_reachin_freq", 50 },
-					{ "zombie_taunt_freq", 5 },
-					{ "cg_hudDamageIconTime", 2000 },
-					{ "developer", 0 },
-					{ "revive_trigger_radius", 75 },
-					{ "player_reviveTriggerRadius", 64 },
-					{ "g_speed", 190 },
-					{ "ai_badPathSpam", 0 }
+					{ "cl_noprint", "0" },
+					{ "magic_chest_movable", "1" },
+					{ "ai_disableSpawn", "0" },
+					{ "zombie_reachin_freq", "50" },
+					{ "zombie_taunt_freq", "5" },
+					{ "cg_hudDamageIconTime", "2000" },
+					{ "developer", "0" },
+					{ "revive_trigger_radius", "75" },
+					{ "player_reviveTriggerRadius", "64" },
+					{ "g_speed", "190" },
+					{ "ai_badPathSpam", "0" },
+					{ "sv_fps", "20" }
 				};
 
-				dvar_string_queue = {
+				dvar_str_queue = {
 					{ "currentDifficulty", "normal" },
 					{ "scr_force_weapon", "" },
 					{ "scr_force_quantum_bomb_result", "" }
+				};
+
+				dvar_double_entry = {
+					{ "g_banzai_player_fov_buffer", "0.200000" }
 				};
 			}
 
@@ -72,7 +70,7 @@ namespace anticheat {
 				vector<string> modified_dvars;
 
 				// check the integer based dvars
-				for (DvarIntEntry int_entry : dvar_int_queue)
+				for (DvarValueEntry int_entry : dvar_int_queue)
 				{
 					if (!game::process::IsGameOpen())
 					{
@@ -80,9 +78,9 @@ namespace anticheat {
 					}
 
 					const char* dvar_name = int_entry.dvar_name;
-					int expected_value = int_entry.expected_value;
+					const char* expected_value = int_entry.expected_value;
 
-					int game_value = GetDvarInt(dvar_name);
+					const char* game_value = GetDvarInt(dvar_name);
 					const char* map_name = game::GetMapName();
 
 					// special logic for the zombie_reachin_freq and zombie_taunt_freq dvars
@@ -90,9 +88,9 @@ namespace anticheat {
 
 					if (!zombie_reachin_initalized)
 					{
-						if (utils::strings::ConstCharEquals(dvar_name, "zombie_reachin_freq"))
+						if (utils::strings::CompareConstChar(dvar_name, "zombie_reachin_freq"))
 						{
-							if (game_value == 0)
+							if (utils::strings::CompareConstChar(game_value, "0"))
 							{
 								continue;
 							}
@@ -105,9 +103,9 @@ namespace anticheat {
 
 					if (!zombie_taunt_initalized)
 					{
-						if (utils::strings::ConstCharEquals(dvar_name, "zombie_taunt_freq"))
+						if (utils::strings::CompareConstChar(dvar_name, "zombie_taunt_freq"))
 						{
-							if (game_value == 0)
+							if (utils::strings::CompareConstChar(game_value, "0"))
 							{
 								continue;
 							}
@@ -120,9 +118,9 @@ namespace anticheat {
 
 					// special check for "magic_chest_movable" on nacht and doa
 					if (
-						utils::strings::ConstCharEquals(dvar_name, "magic_chest_movable") &&
-						(utils::strings::ConstCharEquals(map_name, "zombie_cod5_prototype") ||
-							utils::strings::ConstCharEquals(map_name, "zombietron"))
+						utils::strings::CompareConstChar(dvar_name, "magic_chest_movable") &&
+						(utils::strings::CompareConstChar(map_name, "zombie_cod5_prototype") ||
+							utils::strings::CompareConstChar(map_name, "zombietron"))
 						)
 					{
 						continue;
@@ -132,18 +130,18 @@ namespace anticheat {
 					// these don't actually matter on the map
 					// they arent initialized on doa either so they can cause some false flags
 					if (
-						utils::strings::ConstCharEquals(map_name, "zombietron")
+						utils::strings::CompareConstChar(map_name, "zombietron")
 						&& (
-							utils::strings::ConstCharEquals(dvar_name, "zombie_reachin_freq") ||
-							utils::strings::ConstCharEquals(dvar_name, "zombie_taunt_freq") ||
-							utils::strings::ConstCharEquals(dvar_name, "revive_trigger_radius")
+							utils::strings::CompareConstChar(dvar_name, "zombie_reachin_freq") ||
+							utils::strings::CompareConstChar(dvar_name, "zombie_taunt_freq") ||
+							utils::strings::CompareConstChar(dvar_name, "revive_trigger_radius")
 							)
 						)
 					{
 						continue;
 					}
 
-					if (game_value != expected_value)
+					if (!utils::strings::CompareConstChar(game_value, expected_value))
 					{
 						std::string name_str(dvar_name);
 						modified_dvars.push_back(name_str);
@@ -151,7 +149,7 @@ namespace anticheat {
 				}
 
 				// check the string based dvars
-				for (DvarStringEntry string_entry : dvar_string_queue)
+				for (DvarValueEntry string_entry : dvar_str_queue)
 				{
 					if (!game::process::IsGameOpen())
 					{
@@ -160,9 +158,7 @@ namespace anticheat {
 
 					const char* dvar_name = string_entry.dvar_name;
 					const char* expected_value = string_entry.expected_value;
-
 					const char* game_value = GetDvarString(dvar_name);
-					const char* map_name = game::GetMapName();
 
 					// this can happen when the dvar isnt initialized
 					if (game_value == nullptr)
@@ -170,7 +166,32 @@ namespace anticheat {
 						continue;
 					}
 
-					if (!utils::strings::ConstCharEquals(game_value, expected_value))
+					if (!utils::strings::CompareConstChar(game_value, expected_value))
+					{
+						std::string name_str(dvar_name);
+						modified_dvars.push_back(name_str);
+					}
+				}
+
+				// check double entries
+				for (DvarValueEntry double_entry : dvar_double_entry)
+				{
+					if (!game::process::IsGameOpen())
+					{
+						return "";
+					}
+
+					const char* dvar_name = double_entry.dvar_name;
+					const char* expected_value = double_entry.expected_value;
+					const char* game_value = GetDvarDouble(dvar_name);
+
+					// this can happen when the dvar isnt initialized
+					if (game_value == nullptr)
+					{
+						continue;
+					}
+
+					if (!utils::strings::CompareConstChar(game_value, expected_value))
 					{
 						std::string name_str(dvar_name);
 						modified_dvars.push_back(name_str);
@@ -182,163 +203,92 @@ namespace anticheat {
 
 			const char* GetDvarString(const char* dvar_name)
 			{
+				return CallHelperFunction(dvar_name, "GetDvarString");
+			}
+
+			const char* GetDvarInt(const char* dvar_name)
+			{
+				return CallHelperFunction(dvar_name, "GetDvarInt");
+			}
+
+			const char* GetDvarBool(const char* dvar_name)
+			{
+				return CallHelperFunction(dvar_name, "GetDvarBool");
+			}
+
+			const char* GetDvarDouble(const char* dvar_name)
+			{
+				return CallHelperFunction(dvar_name, "GetDvarDouble");
+			}
+
+			const char* CallHelperFunction(const char* dvar_name, const char* function_name)
+			{
 				HANDLE handle = game::process::GetBlackOpsProcess();
-				if (!handle)
+				if (handle == NULL || handle == INVALID_HANDLE_VALUE)
 				{
 					return nullptr;
 				}
 
-				// allocate memory for the dvar name
+				// Get the module of the helper DLL
+				HMODULE helper_module = utils::memory::GetRemoteModuleHandle(handle, Constants::HELPER_NAME.c_str());
+				if (!helper_module)
+				{
+					return nullptr;
+				}
+
+				// Get function address
+				FARPROC func_address = utils::memory::GetRemoteProcAddress(handle, helper_module, function_name);
+				if (!func_address)
+				{
+					return nullptr;
+				}
+
+				// Allocate memory in the remote process for the Dvar name
 				size_t len = strlen(dvar_name) + 1;
-				LPVOID remote_dvar_name = VirtualAllocEx(handle, nullptr, len, MEM_COMMIT | MEM_RESERVE, PAGE_READWRITE);
-				if (!remote_dvar_name)
+				LPVOID dvar_name_alloc = VirtualAllocEx(handle, nullptr, len, MEM_COMMIT | MEM_RESERVE, PAGE_READWRITE);
+				if (!dvar_name_alloc)
 				{
 					return nullptr;
 				}
 
-				// write the dvar name to the game
-				WriteProcessMemory(handle, remote_dvar_name, dvar_name, len, nullptr);
+				// Write the Dvar name to the remote process memory
+				WriteProcessMemory(handle, dvar_name_alloc, dvar_name, len, nullptr);
 
-				// allocate memory for the return value
-				LPVOID remote_return_value = VirtualAllocEx(handle, nullptr, sizeof(const char*), MEM_COMMIT | MEM_RESERVE, PAGE_READWRITE);
-				if (!remote_return_value)
-				{
-					VirtualFreeEx(handle, remote_dvar_name, 0, MEM_RELEASE);
-					return nullptr;
-				}
-
-				// create a remote thread to call the function
-				HANDLE remote_thread = CreateRemoteThread(handle, nullptr, 0, (LPTHREAD_START_ROUTINE)Dvar_GetString, remote_dvar_name, 0, nullptr);
+				// Create thread in remote process to call the function
+				HANDLE remote_thread = CreateRemoteThread(handle, nullptr, 0, (LPTHREAD_START_ROUTINE)func_address, dvar_name_alloc, 0, nullptr);
 				if (!remote_thread)
 				{
-					VirtualFreeEx(handle, remote_dvar_name, 0, MEM_RELEASE);
-					VirtualFreeEx(handle, remote_return_value, 0, MEM_RELEASE);
+					VirtualFreeEx(handle, dvar_name_alloc, 0, MEM_RELEASE);
 					return nullptr;
 				}
 
-				// wait for the function to execute
+				// Wait for the function call to complete
 				WaitForSingleObject(remote_thread, INFINITE);
 
-				// get the return value
-				DWORD return_value;
-				GetExitCodeThread(remote_thread, &return_value);
+				// Get the return value (which is a pointer in remote memory)
+				DWORD remote_ptr;
+				GetExitCodeThread(remote_thread, &remote_ptr);
 
-				// read the string from memory
+				if (!remote_ptr)  // Check if allocation in the remote process failed
+				{
+					VirtualFreeEx(handle, dvar_name_alloc, 0, MEM_RELEASE);
+					CloseHandle(remote_thread);
+					return nullptr;
+				}
+
+				// Read the string from remote memory
 				char buffer[256] = { 0 };
-				ReadProcessMemory(handle, (LPCVOID)return_value, buffer, sizeof(buffer), nullptr);
+				ReadProcessMemory(handle, (LPCVOID)remote_ptr, buffer, sizeof(buffer), nullptr);
 
-				// clean up
-				VirtualFreeEx(handle, remote_dvar_name, 0, MEM_RELEASE);
-				VirtualFreeEx(handle, remote_return_value, 0, MEM_RELEASE);
+				// Free allocated memory in remote process
+				VirtualFreeEx(handle, dvar_name_alloc, 0, MEM_RELEASE);
+				VirtualFreeEx(handle, (LPVOID)remote_ptr, 0, MEM_RELEASE); // Free the string memory
 				CloseHandle(remote_thread);
 
-				// return the value (this is a local copy)
+				// Return a local copy
 				return _strdup(buffer);
 			}
 
-			unsigned int GetDvarInt(const char* dvar_name)
-			{
-				HANDLE process = game::process::GetBlackOpsProcess();
-				if (!process)
-				{
-					return -1;
-				}
-
-				// allocate memory for the dvar name
-				size_t len = strlen(dvar_name) + 1;
-				LPVOID remoteDvarName = VirtualAllocEx(process, nullptr, len, MEM_COMMIT | MEM_RESERVE, PAGE_READWRITE);
-				if (!remoteDvarName)
-				{
-					return -1;
-				}
-
-				// write the dvar name to the game
-				WriteProcessMemory(process, remoteDvarName, dvar_name, len, nullptr);
-
-				// allocate memory for the return value
-				LPVOID remote_return_value = VirtualAllocEx(process, nullptr, sizeof(unsigned int), MEM_COMMIT | MEM_RESERVE, PAGE_READWRITE);
-				if (!remote_return_value)
-				{
-					VirtualFreeEx(process, remoteDvarName, 0, MEM_RELEASE);
-					return -1;
-				}
-
-				// create a remote thread to call the function
-				HANDLE remote_thread = CreateRemoteThread(process, nullptr, 0, (LPTHREAD_START_ROUTINE)Dvar_GetInt, remoteDvarName, 0, nullptr);
-				if (!remote_thread)
-				{
-					VirtualFreeEx(process, remoteDvarName, 0, MEM_RELEASE);
-					VirtualFreeEx(process, remote_return_value, 0, MEM_RELEASE);
-					return -1;
-				}
-
-				// wait for the function to execute
-				WaitForSingleObject(remote_thread, INFINITE);
-
-				// get the return value
-				DWORD return_value;
-				GetExitCodeThread(remote_thread, &return_value);
-
-				// clean up
-				VirtualFreeEx(process, remoteDvarName, 0, MEM_RELEASE);
-				VirtualFreeEx(process, remote_return_value, 0, MEM_RELEASE);
-				CloseHandle(remote_thread);
-
-				// return the value (dvar ints are always an unsigned int)
-				return static_cast<unsigned int>(return_value);
-			}
-
-			bool GetDvarBool(const char* dvar_name)
-			{
-				HANDLE handle = game::process::GetBlackOpsProcess();
-				if (!handle)
-				{
-					return false;
-				}
-
-				// allocate memory for the dvar name
-				size_t len = strlen(dvar_name) + 1;
-				LPVOID remote_dvar_name = VirtualAllocEx(handle, nullptr, len, MEM_COMMIT | MEM_RESERVE, PAGE_READWRITE);
-				if (!remote_dvar_name)
-				{
-					return false;
-				}
-
-				// write the dvar name to the game
-				WriteProcessMemory(handle, remote_dvar_name, dvar_name, len, nullptr);
-
-				// allocate memory for the return value
-				LPVOID remote_return_value = VirtualAllocEx(handle, nullptr, sizeof(bool), MEM_COMMIT | MEM_RESERVE, PAGE_READWRITE);
-				if (!remote_return_value)
-				{
-					VirtualFreeEx(handle, remote_dvar_name, 0, MEM_RELEASE);
-					return false;
-				}
-
-				// create a remote thread to call the function
-				HANDLE remote_thread = CreateRemoteThread(handle, nullptr, 0, (LPTHREAD_START_ROUTINE)Dvar_GetBool, remote_dvar_name, 0, nullptr);
-				if (!remote_thread)
-				{
-					VirtualFreeEx(handle, remote_dvar_name, 0, MEM_RELEASE);
-					VirtualFreeEx(handle, remote_return_value, 0, MEM_RELEASE);
-					return false;
-				}
-
-				// wait for the function to execute
-				WaitForSingleObject(remote_thread, INFINITE);
-
-				// get the return value
-				DWORD return_value;
-				GetExitCodeThread(remote_thread, &return_value);
-
-				// clean up
-				VirtualFreeEx(handle, remote_dvar_name, 0, MEM_RELEASE);
-				VirtualFreeEx(handle, remote_return_value, 0, MEM_RELEASE);
-				CloseHandle(remote_thread);
-
-				// return the value
-				return static_cast<bool>(return_value);
-			}
 		}
 	}
 }

@@ -20,6 +20,8 @@
 
 #include "../utils/strings.hpp"
 
+#include "helper/helper.hpp"
+
 using namespace std;
 
 bool initialized = false;
@@ -57,6 +59,13 @@ namespace anticheat {
 
     void OnGameOpened()
     {
+        if (!helper::InjectHelper())
+        {
+            MessageBoxA(NULL, "Couldn't initialize helper.", "BO1 Anti Cheat (Error)", MB_OK | MB_ICONERROR);
+            ExitProcess(0);
+            return;
+        }
+
         const char* map_name = game::GetMapName();
         if (IsMapValid(map_name))
         {
@@ -242,8 +251,9 @@ namespace anticheat {
             }
 
             // check for filmtweaks on ascension
-            int r_filmUseTweaks = integrity::dvars::GetDvarInt("r_filmUseTweaks");
-            if (r_filmUseTweaks == 1 && utils::strings::ConstCharEquals(current_map, "zombie_cosmodrome"))
+            const char* r_filmUseTweaks = integrity::dvars::GetDvarInt("r_filmUseTweaks");
+            if (utils::strings::CompareConstChar(r_filmUseTweaks, "1") 
+                && utils::strings::CompareConstChar(current_map, "zombie_cosmodrome"))
             {
                 AddCheatFound("Film Tweaks are enabled on a map that disallows it.");
                 NotifyCheatsDetected();
@@ -252,32 +262,40 @@ namespace anticheat {
         }
 
         // always check for developer_script
-        int developer_script = integrity::dvars::GetDvarInt("developer_script");
-        if (developer_script == 1)
+        const char* developer_script = integrity::dvars::GetDvarInt("developer_script");
+        if (utils::strings::CompareConstChar(developer_script, "1"))
         {
             AddCheatFound("Developer Scripts were enabled.");
             NotifyCheatsDetected();
             return;
         }
 
-        // check for fps high limit
-        int com_maxfps = integrity::dvars::GetDvarInt("com_maxfps");
-        if (com_maxfps > 250)
+        // fps checks
+
+        const char* com_maxfps_str = integrity::dvars::GetDvarInt("com_maxfps");
+        bool maxfps_converted = false;
+        int com_maxfps = utils::strings::ToInt(com_maxfps_str, maxfps_converted);
+
+        if (maxfps_converted)
         {
-            AddCheatFound("Max FPS is set higher than 250");
-            NotifyCheatsDetected();
-            return;
+            // can not be above 250
+            if (com_maxfps > 250)
+            {
+                AddCheatFound("Max FPS is set higher than 250");
+                NotifyCheatsDetected();
+                return;
+            }
+
+            // can not be below 24
+            if (com_maxfps < 24)
+            {
+                AddCheatFound("Max FPS is set lower than 24");
+                NotifyCheatsDetected();
+                return;
+            }
         }
 
-        // check for fps low limit
-        if (com_maxfps < 24)
-        {
-            AddCheatFound("Max FPS is set lower than 24");
-            NotifyCheatsDetected();
-            return;
-        }
-
-        if (std::strcmp(map_name, "frontend") == 0)
+        if (utils::strings::CompareConstChar(map_name, "frontend"))
         {
             main_status = Statuses::GAME_CONNECTED;
             info_status = Statuses::WAITING_FOR_MAP_LOAD_QUIT;
@@ -290,6 +308,13 @@ namespace anticheat {
     {
         if (cheating_detected)
         {
+            return;
+        }
+
+        if (!helper::CheckHelperIntegrity() && !cheating_detected)
+        {
+            AddCheatFound(Constants::HELPER_NAME + " is required to run the anticheat.");
+            NotifyCheatsDetected();
             return;
         }
 

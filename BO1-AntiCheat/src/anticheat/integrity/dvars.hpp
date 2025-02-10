@@ -1,21 +1,9 @@
 #include <string>
 
-struct DvarStringEntry
+struct DvarValueEntry
 {
 	const char* dvar_name;
 	const char* expected_value;
-};
-
-struct DvarIntEntry
-{
-	const char* dvar_name;
-	unsigned int expected_value;
-};
-
-struct DvarBoolEntry
-{
-	const char* dvar_name;
-	bool expected_value;
 };
 
 namespace anticheat {
@@ -25,8 +13,10 @@ namespace anticheat {
 			void Cleanup();
 			std::string GetModifiedDvars();
 			const char* GetDvarString(const char* dvarName);
-			unsigned int GetDvarInt(const char* dvar_name);
-			bool GetDvarBool(const char* dvar_name);
+			const char* GetDvarInt(const char* dvar_name);
+			const char* GetDvarBool(const char* dvar_name);
+			const char* GetDvarDouble(const char* dvar_name);
+			const char* CallHelperFunction(const char* dvar_name, const char* function_name);
 		}
 	}
 }

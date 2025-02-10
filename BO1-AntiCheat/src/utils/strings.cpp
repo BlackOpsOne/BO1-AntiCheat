@@ -4,7 +4,7 @@
 
 namespace utils {
 	namespace strings {
-		bool ConstCharEquals(const char* a, const char* b)
+		bool CompareConstChar(const char* a, const char* b)
 		{
 			return std::strcmp(a, b) == 0;
 		}
@@ -54,6 +54,30 @@ namespace utils {
 				}
 			}
 			return formatted_vec;
+		}
+
+		int ToInt(const char* str, bool& success) {
+			if (!str) {
+				success = false;
+				return 0;
+			}
+
+			char* end;
+			errno = 0;
+			long result = std::strtol(str, &end, 10);
+
+			if (errno == ERANGE || result > INT_MAX || result < INT_MIN) {
+				success = false;
+				return 0;
+			}
+
+			if (*end != '\0') {
+				success = false;
+				return 0;
+			}
+
+			success = true;
+			return static_cast<int>(result);
 		}
 	} // strings
 } // utils
