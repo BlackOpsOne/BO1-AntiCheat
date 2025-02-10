@@ -10,7 +10,7 @@ namespace anticheat {
 	void OnGameClosed();
 	void AttemptIntegrityCheck();
 	void AddCheatFound(std::string cheating_method);
-	void NotifyCheatsDetected();
+	void NotifyCheatsDetected(bool show_detections = true);
 	void WaitForBlackOpsProcess();
 
 	bool CheatingDetected();

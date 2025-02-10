@@ -100,22 +100,25 @@ namespace anticheat {
 
     // pops up the second window that explains what was found
     // this is especially good for players who may accidentally leave something in their files
-    void NotifyCheatsDetected()
+    void NotifyCheatsDetected(bool show_detections = true)
     {
-        cheating_detected = true;
-
         // notify the player
+        cheating_detected = true;
         main_status = Statuses::CHEATING_DETECTED;
         info_status = Statuses::MORE_INFO_WINDOW;
         notified_cheats_detected = true;
 
-        std::string cheats = "The following cheating methods were detected:\n";
-        for (std::string cheat_found : cheats_found)
+        // show the window, but in certain situations don't
+        if (show_detections)
         {
-            cheats += "\n- " + cheat_found;
-        }
+            std::string cheats = "The following cheating methods were detected:\n";
+            for (std::string cheat_found : cheats_found)
+            {
+                cheats += "\n- " + cheat_found;
+            }
 
-        MessageBoxA(NULL, cheats.c_str(), "BO1 Anti Cheat (Detections)", MB_OK | MB_ICONERROR);
+            MessageBoxA(NULL, cheats.c_str(), "BO1 Anti Cheat (Detections)", MB_OK | MB_ICONERROR);
+        }
     }
 
     // handles all checks to ensure a bo1 game is not cheated
@@ -313,8 +316,8 @@ namespace anticheat {
 
         if (!helper::CheckHelperIntegrity() && !cheating_detected)
         {
-            AddCheatFound(Constants::HELPER_NAME + " is required to run the anticheat.");
-            NotifyCheatsDetected();
+            NotifyCheatsDetected(false);
+            info_status = Constants::HELPER_NAME + " was modified or not found";
             return;
         }
 
