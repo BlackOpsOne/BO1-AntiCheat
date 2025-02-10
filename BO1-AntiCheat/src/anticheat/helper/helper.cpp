@@ -37,7 +37,7 @@ namespace anticheat {
 
 		bool InjectHelper()
 		{
-			HANDLE handle = game::process::GetBlackOpsProcess();
+			HANDLE handle = game::process::GetBlackOpsHandle();
 			if (!game::process::IsGameOpen())
 			{
 				return false;

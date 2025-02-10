@@ -87,7 +87,7 @@ namespace anticheat {
 			// i believe for this to properly work in coop, it will need to be run by the host
 			std::string GetModifiedPlayerStates()
 			{
-				HANDLE handle = game::process::GetBlackOpsProcess();
+				HANDLE handle = game::process::GetBlackOpsHandle();
 				if (handle == NULL || handle == INVALID_HANDLE_VALUE)
 				{
 					return "";
@@ -151,7 +151,7 @@ namespace anticheat {
 					return false;
 				}
 
-				HANDLE handle = game::process::GetBlackOpsProcess();
+				HANDLE handle = game::process::GetBlackOpsHandle();
 				if (handle == NULL) {
 					return false;
 				}

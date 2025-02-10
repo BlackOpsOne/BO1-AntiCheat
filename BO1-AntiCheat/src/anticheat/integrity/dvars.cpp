@@ -223,14 +223,14 @@ namespace anticheat {
 
 			const char* CallHelperFunction(const char* dvar_name, const char* function_name)
 			{
-				HANDLE handle = game::process::GetBlackOpsProcess();
+				HANDLE handle = game::process::GetBlackOpsHandle();
 				if (handle == NULL || handle == INVALID_HANDLE_VALUE)
 				{
 					return nullptr;
 				}
 
 				// Get the module of the helper DLL
-				HMODULE helper_module = utils::memory::GetRemoteModuleHandle(handle, Constants::HELPER_NAME.c_str());
+				HMODULE helper_module = game::process::GetHelperModule();
 				if (!helper_module)
 				{
 					return nullptr;

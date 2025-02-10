@@ -5,12 +5,15 @@
 #include <TlHelp32.h>
 #include <psapi.h>
 
+#include "../utils/memory.hpp"
+
 HANDLE hGameProcess = NULL;
+HMODULE helperModule = NULL;
 
 namespace game {
 	namespace process {
 		// gets the bo1 process so we can utilize it
-		HANDLE GetBlackOpsProcess()
+		HANDLE GetBlackOpsHandle()
 		{
 			if (hGameProcess != NULL)
 			{
@@ -42,13 +45,13 @@ namespace game {
 		// checks if the game is open
 		bool IsGameOpen()
 		{
-			HANDLE handle = GetBlackOpsProcess();
+			HANDLE handle = GetBlackOpsHandle();
 			return handle != NULL && handle != INVALID_HANDLE_VALUE;
 		}
 
 		// gets the path to the actual bo1 executable, with the .exe name included
 		std::string GetPathToExe() {
-			HANDLE handle = GetBlackOpsProcess();
+			HANDLE handle = GetBlackOpsHandle();
 
 			if (handle == NULL || handle == INVALID_HANDLE_VALUE) {
 				return "";
@@ -93,5 +96,18 @@ namespace game {
 			return 0;
 		}
 
+		HMODULE GetHelperModule()
+		{
+			if (helperModule == NULL)
+			{
+				helperModule = utils::memory::GetRemoteHelperModule(GetBlackOpsHandle());
+			}
+			return helperModule;
+		}
+
+		void Cleanup()
+		{
+			helperModule = NULL;
+		}
 	} // process
 } // game

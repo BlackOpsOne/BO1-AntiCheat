@@ -4,6 +4,8 @@
 
 #include "../constants.h"
 
+#include "files.hpp"
+
 using namespace std;
 
 namespace utils {
@@ -48,7 +50,7 @@ namespace utils {
 		}
 
 		std::vector<BYTE> GetFunctionOpcodes(void* targetAddr, size_t opcodeSize) {
-			HANDLE handle = game::process::GetBlackOpsProcess();
+			HANDLE handle = game::process::GetBlackOpsHandle();
 			std::vector<BYTE> buffer(opcodeSize);
 			SIZE_T bytesRead;
 
@@ -129,14 +131,14 @@ namespace utils {
 			return true;
 		}
 
-		FARPROC GetRemoteProcAddress(HANDLE hProcess, HMODULE hModule, const char* functionName)
+		FARPROC GetRemoteProcAddress(HANDLE process, HMODULE module, const char* function_name)
 		{
-			if (!hModule)
+			if (!module)
 				return nullptr;
 
 			// Read the IMAGE_DOS_HEADER
 			IMAGE_DOS_HEADER dosHeader;
-			if (!ReadProcessMemory(hProcess, (LPCVOID)hModule, &dosHeader, sizeof(IMAGE_DOS_HEADER), nullptr) ||
+			if (!ReadProcessMemory(process, (LPCVOID)module, &dosHeader, sizeof(IMAGE_DOS_HEADER), nullptr) ||
 				dosHeader.e_magic != IMAGE_DOS_SIGNATURE)
 			{
 				return nullptr;
@@ -144,7 +146,7 @@ namespace utils {
 
 			// Read the IMAGE_NT_HEADERS
 			IMAGE_NT_HEADERS ntHeaders;
-			if (!ReadProcessMemory(hProcess, (LPCVOID)((BYTE*)hModule + dosHeader.e_lfanew), &ntHeaders, sizeof(IMAGE_NT_HEADERS), nullptr) ||
+			if (!ReadProcessMemory(process, (LPCVOID)((BYTE*)module + dosHeader.e_lfanew), &ntHeaders, sizeof(IMAGE_NT_HEADERS), nullptr) ||
 				ntHeaders.Signature != IMAGE_NT_SIGNATURE)
 			{
 				return nullptr;
@@ -153,7 +155,7 @@ namespace utils {
 			// Read the IMAGE_EXPORT_DIRECTORY
 			IMAGE_DATA_DIRECTORY exportDataDir = ntHeaders.OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_EXPORT];
 			IMAGE_EXPORT_DIRECTORY exportDirectory;
-			if (!ReadProcessMemory(hProcess, (LPCVOID)((BYTE*)hModule + exportDataDir.VirtualAddress), &exportDirectory, sizeof(IMAGE_EXPORT_DIRECTORY), nullptr))
+			if (!ReadProcessMemory(process, (LPCVOID)((BYTE*)module + exportDataDir.VirtualAddress), &exportDirectory, sizeof(IMAGE_EXPORT_DIRECTORY), nullptr))
 			{
 				return nullptr;
 			}
@@ -163,22 +165,22 @@ namespace utils {
 			WORD* ordinalTable = new WORD[exportDirectory.NumberOfNames];
 			DWORD* functionPointers = new DWORD[exportDirectory.NumberOfFunctions];
 
-			ReadProcessMemory(hProcess, (LPCVOID)((BYTE*)hModule + exportDirectory.AddressOfNames), namePointers, exportDirectory.NumberOfNames * sizeof(DWORD), nullptr);
-			ReadProcessMemory(hProcess, (LPCVOID)((BYTE*)hModule + exportDirectory.AddressOfNameOrdinals), ordinalTable, exportDirectory.NumberOfNames * sizeof(WORD), nullptr);
-			ReadProcessMemory(hProcess, (LPCVOID)((BYTE*)hModule + exportDirectory.AddressOfFunctions), functionPointers, exportDirectory.NumberOfFunctions * sizeof(DWORD), nullptr);
+			ReadProcessMemory(process, (LPCVOID)((BYTE*)module + exportDirectory.AddressOfNames), namePointers, exportDirectory.NumberOfNames * sizeof(DWORD), nullptr);
+			ReadProcessMemory(process, (LPCVOID)((BYTE*)module + exportDirectory.AddressOfNameOrdinals), ordinalTable, exportDirectory.NumberOfNames * sizeof(WORD), nullptr);
+			ReadProcessMemory(process, (LPCVOID)((BYTE*)module + exportDirectory.AddressOfFunctions), functionPointers, exportDirectory.NumberOfFunctions * sizeof(DWORD), nullptr);
 
 			// Iterate through function names to find the matching one
 			FARPROC remoteFunctionAddress = nullptr;
 			for (DWORD i = 0; i < exportDirectory.NumberOfNames; i++)
 			{
 				char functionNameBuffer[256] = { 0 };
-				ReadProcessMemory(hProcess, (LPCVOID)((BYTE*)hModule + namePointers[i]), functionNameBuffer, sizeof(functionNameBuffer), nullptr);
+				ReadProcessMemory(process, (LPCVOID)((BYTE*)module + namePointers[i]), functionNameBuffer, sizeof(functionNameBuffer), nullptr);
 
-				if (_stricmp(functionName, functionNameBuffer) == 0)
+				if (_stricmp(function_name, functionNameBuffer) == 0)
 				{
 					WORD functionOrdinal = ordinalTable[i];
 					DWORD functionRVA = functionPointers[functionOrdinal];
-					remoteFunctionAddress = (FARPROC)((BYTE*)hModule + functionRVA);
+					remoteFunctionAddress = (FARPROC)((BYTE*)module + functionRVA);
 					break;
 				}
 			}
@@ -191,27 +193,34 @@ namespace utils {
 			return remoteFunctionAddress;
 		}
 
-		HMODULE GetRemoteModuleHandle(HANDLE hProcess, const char* moduleName)
+		HMODULE GetRemoteHelperModule(HANDLE handle)
 		{
 			HMODULE hMods[1024];
 			DWORD cbNeeded;
 
-			// Get a list of all the modules in the remote process
-			if (EnumProcessModules(hProcess, hMods, sizeof(hMods), &cbNeeded))
+			if (EnumProcessModules(handle, hMods, sizeof(hMods), &cbNeeded))
 			{
 				for (size_t i = 0; i < (cbNeeded / sizeof(HMODULE)); i++)
 				{
 					char modName[MAX_PATH];
-					if (GetModuleBaseNameA(hProcess, hMods[i], modName, sizeof(modName) / sizeof(char)))
+					if (GetModuleBaseNameA(handle, hMods[i], modName, sizeof(modName) / sizeof(char)))
 					{
-						if (_stricmp(modName, moduleName) == 0)
+						char moduleFilePath[MAX_PATH];
+						if (GetModuleFileNameExA(handle, hMods[i], moduleFilePath, sizeof(moduleFilePath)))
 						{
-							return hMods[i]; // Return the module handle (base address)
+							std::string moduleHash = utils::files::GetMD5(moduleFilePath);
+							std::string dll_hash = Constants::HELPER_MD5;
+
+							if (_stricmp(modName, Constants::HELPER_NAME.c_str()) == 0 
+								&& (moduleHash == dll_hash))
+							{
+								return hMods[i];
+							}
 						}
 					}
 				}
 			}
-			return nullptr; // Module not found
+			return nullptr;
 		}
 	} // memory
 } // utils

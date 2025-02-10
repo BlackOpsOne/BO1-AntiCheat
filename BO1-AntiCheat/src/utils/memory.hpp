@@ -22,7 +22,7 @@ namespace utils {
 
         // for calling of remote functions
         FARPROC GetRemoteProcAddress(HANDLE hProcess, HMODULE hModule, const char* functionName);
-        HMODULE GetRemoteModuleHandle(HANDLE hProcess, const char* moduleName);
+        HMODULE GetRemoteHelperModule(HANDLE hProcess);
 
         HANDLE CreateDvarThread(const char* dvar_name, const char* func_name);
 

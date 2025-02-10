@@ -90,6 +90,7 @@ namespace anticheat {
         initialized = false;
         performed_integrity_check = false;
         integrity::dvars::Cleanup();
+        game::process::Cleanup();
     }
 
     // adds a cheating method to a list, this will be shown in a second window

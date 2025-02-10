@@ -36,7 +36,7 @@ namespace game {
 	// reads the map id from memory, Furret's box tracker uses this same method for setting up the weapons list
 	int GetMapId()
 	{
-		HANDLE handle = process::GetBlackOpsProcess();
+		HANDLE handle = process::GetBlackOpsHandle();
 		if (handle == NULL || handle == INVALID_HANDLE_VALUE) {
 			return -1;
 		}
@@ -61,7 +61,7 @@ namespace game {
 	// gets the total game time
 	int GetGameTime()
 	{
-		HANDLE handle = process::GetBlackOpsProcess();
+		HANDLE handle = process::GetBlackOpsHandle();
 		if (handle == NULL || handle == INVALID_HANDLE_VALUE) {
 			return -1;
 		}
@@ -112,7 +112,7 @@ namespace game {
 	// checks for the game_mod.dll file in the modules list of bo1
 	bool IsGameModPresent()
 	{
-		HANDLE handle = process::GetBlackOpsProcess();
+		HANDLE handle = process::GetBlackOpsHandle();
 		if (handle == NULL || handle == INVALID_HANDLE_VALUE) {
 			return false;
 		}
@@ -150,7 +150,7 @@ namespace game {
 	// this checks if the custom fx tool is present in the game
 	bool IsCustomFxToolPresent()
 	{
-		HANDLE handle = process::GetBlackOpsProcess();
+		HANDLE handle = process::GetBlackOpsHandle();
 		if (!process::IsGameOpen()) {
 			return false;
 		}
@@ -215,7 +215,7 @@ namespace game {
 
 	std::string GetGameLanguage()
 	{
-		HANDLE handle = process::GetBlackOpsProcess();
+		HANDLE handle = process::GetBlackOpsHandle();
 		if (handle == NULL || handle == INVALID_HANDLE_VALUE) {
 			return "";
 		}
