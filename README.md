@@ -2,7 +2,7 @@
 A tool for competitive Black Ops Zombies specifically designed to catch people cheating.
 
 ## Using it in your games
-- Head to [Releases](https://github.com/BlackOpsOne/BO1-AntiCheat/releases/latest) and grab the latest `BO1-AntiCheat.exe` file and open it along side Black Ops
+- Head to [Releases](https://github.com/BlackOpsOne/BO1-AntiCheat/releases/latest) and grab the latest `BO1-AntiCheat.zip` file, extract it and open `BO1-AntiCheat.exe` alongside Black Ops.
 	- It will automatically connect to the game.
 
 - For coop games, only the host will need to use it.
