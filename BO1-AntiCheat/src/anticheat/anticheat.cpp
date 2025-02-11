@@ -13,7 +13,7 @@
 
 #include "utils/memory.hpp"
 #include "utils/strings.hpp"
-#include "helper/helper.hpp"
+#include "internals/internals.hpp"
 
 #include <vector>
 
@@ -52,9 +52,9 @@ namespace anticheat {
 
     void OnGameOpened()
     {
-        if (!helper::InjectHelper())
+        if (!internals::Inject())
         {
-            MessageBoxA(NULL, "Couldn't initialize helper.", "BO1 Anti Cheat (Error)", MB_OK | MB_ICONERROR);
+            MessageBoxA(NULL, "Couldn't initialize internals.", "BO1 Anti Cheat (Error)", MB_OK | MB_ICONERROR);
             ExitProcess(0);
             return;
         }
@@ -308,10 +308,10 @@ namespace anticheat {
             return;
         }
 
-        if (!helper::CheckHelperIntegrity() && !cheating_detected)
+        if (!internals::CheckDLL_Integrity() && !cheating_detected)
         {
             NotifyCheatsDetected(false);
-            info_status = Constants::HELPER_NAME + " was modified or not found";
+            info_status = Constants::INTERNALS_NAME + " was modified or not found";
             return;
         }
 

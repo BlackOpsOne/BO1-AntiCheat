@@ -6,6 +6,8 @@
 #include <psapi.h>
 #include <iomanip>
 
+#include "../integrity/module.h"
+
 namespace anticheat {
     namespace utils {
         namespace memory {
@@ -24,6 +26,8 @@ namespace anticheat {
             // for calling of remote functions
             FARPROC GetRemoteProcAddress(HANDLE hProcess, HMODULE hModule, const char* functionName);
             HMODULE GetRemoteHelperModule(HANDLE hProcess);
+
+            std::vector<ModuleInfo> GetProcessModules(HANDLE handle);
         } // memory
     } // utils
 } // anticheat

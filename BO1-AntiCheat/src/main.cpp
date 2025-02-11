@@ -16,7 +16,7 @@
 
 #include "anticheat/utils/strings.hpp"
 
-#include "anticheat/hooks/hooks.hpp"
+#include "anticheat/integrity/integrity.hpp"
 
 #include "anticheat/constants.h"
 
@@ -157,8 +157,7 @@ std::string WrapText(std::string text, sf::Font font, int fontSize, float maxWid
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow)
 //int main()
 {
-	// setup hooks
-	if (!anticheat::hooks::Initialize())
+	if (!anticheat::integrity::Initialize())
 	{
 		MessageBoxA(NULL, "Failed to initialize.", "BO1 Anti Cheat", MB_OK | MB_ICONERROR);
 		return 0;
@@ -525,10 +524,12 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	// when the main_window is closed, stop the game process thread from running
 	processThreadRunning = false;
 	debuggerThreadRunning = false;
+
 	checkProcessThread.join();
 	checkDebuggerThread.join();
+
 	anticheat::settings::SaveSettings(false);
-	anticheat::hooks::Cleanup();
+	anticheat::integrity::Cleanup();
 
 	return 0;
 }

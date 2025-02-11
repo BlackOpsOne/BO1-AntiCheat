@@ -3,8 +3,8 @@
 #include <iostream>
 
 namespace anticheat {
-	namespace helper {
-		bool CheckHelperIntegrity();
-		bool InjectHelper();
+	namespace internals {
+		bool CheckDLL_Integrity();
+		bool Inject();
 	}
 }

@@ -145,8 +145,9 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="src\anticheat\helper\helper.cpp" />
-    <ClCompile Include="src\anticheat\hooks\hooks.cpp" />
+    <ClCompile Include="src\anticheat\integrity\integrity.cpp" />
+    <ClCompile Include="src\anticheat\internals\internals.cpp" />
+    <ClCompile Include="src\anticheat\integrity\injections.cpp" />
     <ClCompile Include="src\anticheat\game\config.cpp" />
     <ClCompile Include="src\anticheat\game\engine.cpp" />
     <ClCompile Include="src\anticheat\anticheat.cpp" />
@@ -165,8 +166,10 @@
   <ItemGroup>
     <ClInclude Include="resource.h" />
     <ClInclude Include="src\anticheat\anticheat.hpp" />
-    <ClInclude Include="src\anticheat\helper\helper.hpp" />
-    <ClInclude Include="src\anticheat\hooks\hooks.hpp" />
+    <ClInclude Include="src\anticheat\integrity\integrity.hpp" />
+    <ClInclude Include="src\anticheat\integrity\module.h" />
+    <ClInclude Include="src\anticheat\internals\internals.hpp" />
+    <ClInclude Include="src\anticheat\integrity\injections.hpp" />
     <ClInclude Include="src\anticheat\checksums.h" />
     <ClInclude Include="src\anticheat\game\config.hpp" />
     <ClInclude Include="src\anticheat\game\engine.hpp" />

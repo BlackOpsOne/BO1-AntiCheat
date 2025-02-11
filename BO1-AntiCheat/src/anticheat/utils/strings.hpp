@@ -1,3 +1,4 @@
+#include <windows.h>
 #include <string>
 #include <vector>
 #include <fstream>
@@ -15,6 +16,8 @@ namespace anticheat {
 			std::string GetCurrentEpoch();
 			std::string FormatVector(std::vector<std::string> vec);
 			int ToInt(const char* str, bool& success);
+			std::wstring ToWideString(const std::string& str);
+			std::string WStringToString(const std::wstring& wstr);
 		} // strings
 	} // utils
 } // anticheat

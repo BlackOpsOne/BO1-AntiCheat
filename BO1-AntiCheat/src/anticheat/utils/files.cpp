@@ -1,5 +1,14 @@
 #include "files.hpp"
 
+#include <tchar.h>
+#include <windows.h>
+#include <Softpub.h>
+#include <wincrypt.h>
+#include <wintrust.h>
+#include <mscat.h>
+
+#include "../utils/strings.hpp"
+
 namespace anticheat {
 	namespace utils {
 		namespace files {
@@ -55,6 +64,32 @@ namespace anticheat {
 					return -1;
 				}
 				return file.tellg();
+			}
+
+			bool IsDigitallySigned(const std::string& file_path)
+			{
+				WINTRUST_FILE_INFO wintrust_file_info = {};
+				wintrust_file_info.cbStruct = sizeof(WINTRUST_FILE_INFO);
+				wintrust_file_info.pcwszFilePath = utils::strings::ToWideString(file_path).c_str();
+
+				// set the wintrust data
+				WINTRUST_DATA wintrust_data = {};
+				wintrust_data.cbStruct = sizeof(WINTRUST_DATA);
+				wintrust_data.dwUIChoice = WTD_UI_NONE;
+				wintrust_data.fdwRevocationChecks = WTD_REVOKE_NONE;
+				wintrust_data.dwUnionChoice = WTD_CHOICE_FILE;
+				wintrust_data.pFile = &wintrust_file_info;
+				wintrust_data.dwStateAction = WTD_STATEACTION_VERIFY;
+
+				// get the action id and status
+				GUID action_id = WINTRUST_ACTION_GENERIC_VERIFY_V2;
+				long status = WinVerifyTrust(NULL, &action_id, &wintrust_data);
+
+				wintrust_data.dwStateAction = WTD_STATEACTION_CLOSE;
+				WinVerifyTrust(NULL, &action_id, &wintrust_data);
+
+				// return if it was a success
+				return (status == ERROR_SUCCESS);
 			}
 		} // files
 	} // utils

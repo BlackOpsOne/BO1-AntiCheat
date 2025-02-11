@@ -1,4 +1,4 @@
-#include "helper.hpp"
+#include "internals.hpp"
 
 #include <filesystem>
 
@@ -12,21 +12,21 @@
 namespace fs = std::filesystem;
 
 namespace anticheat {
-	namespace helper {
-		bool CheckHelperIntegrity()
+	namespace internals {
+		bool CheckDLL_Integrity()
 		{
-			std::string anticheatDir = utils::files::GetAntiCheatPath();
-			std::string helperPath = anticheatDir + "\\" + Constants::HELPER_NAME;
+			std::string anticheat_dir = utils::files::GetAntiCheatPath();
+			std::string dll_path = anticheat_dir + "\\" + Constants::INTERNALS_NAME;
 
 			// check if it exists
-			if (!fs::exists(helperPath))
+			if (!fs::exists(dll_path))
 			{
 				return false;
 			}
 
 			// check if the hash matches
-			std::string md5 = utils::files::GetMD5(helperPath);
-			if (md5 != Constants::HELPER_MD5)
+			std::string md5 = utils::files::GetMD5(dll_path);
+			if (md5 != Constants::INTERNALS_HASH)
 			{
 				return false;
 			}
@@ -34,7 +34,7 @@ namespace anticheat {
 			return true;
 		}
 
-		bool InjectHelper()
+		bool Inject()
 		{
 			HANDLE handle = game::process::GetBlackOpsHandle();
 			if (!game::process::IsGameOpen())
@@ -42,10 +42,10 @@ namespace anticheat {
 				return false;
 			}
 
-			std::string anticheatDir = utils::files::GetAntiCheatPath();
-			std::string helperPath = anticheatDir + "\\" + Constants::HELPER_NAME;
+			std::string anticheat_dir = utils::files::GetAntiCheatPath();
+			std::string dll_path = anticheat_dir + "\\" + Constants::INTERNALS_NAME;
 
-			if (!utils::memory::InjectDLL(handle, helperPath.c_str()))
+			if (!utils::memory::InjectDLL(handle, dll_path.c_str()))
 			{
 				return false;
 			}

@@ -205,11 +205,10 @@ namespace anticheat {
 							char moduleFilePath[MAX_PATH];
 							if (GetModuleFileNameExA(handle, hMods[i], moduleFilePath, sizeof(moduleFilePath)))
 							{
-								std::string moduleHash = utils::files::GetMD5(moduleFilePath);
-								std::string dll_hash = Constants::HELPER_MD5;
+								std::string module_hash = utils::files::GetMD5(moduleFilePath);
 
-								if (_stricmp(modName, Constants::HELPER_NAME.c_str()) == 0
-									&& (moduleHash == dll_hash))
+								if (_stricmp(modName, Constants::INTERNALS_NAME.c_str()) == 0
+									&& (module_hash == Constants::INTERNALS_HASH))
 								{
 									return hMods[i];
 								}
@@ -217,7 +216,36 @@ namespace anticheat {
 						}
 					}
 				}
+
 				return nullptr;
+			}
+
+			std::vector<ModuleInfo> GetProcessModules(HANDLE handle)
+			{
+				std::vector<ModuleInfo> modules;
+				HMODULE hMods[1024];
+				DWORD cbNeeded;
+
+				if (EnumProcessModules(handle, hMods, sizeof(hMods), &cbNeeded))
+				{
+					for (size_t i = 0; i < (cbNeeded / sizeof(HMODULE)); i++)
+					{
+						char modName[MAX_PATH];
+						char moduleFilePath[MAX_PATH];
+
+						if (GetModuleBaseNameA(handle, hMods[i], modName, sizeof(modName)) &&
+							GetModuleFileNameExA(handle, hMods[i], moduleFilePath, sizeof(moduleFilePath)))
+						{
+							ModuleInfo modInfo;
+							modInfo.name = modName;
+							modInfo.md5 = utils::files::GetMD5(moduleFilePath).c_str();
+							modInfo.is_signed = utils::files::IsDigitallySigned(moduleFilePath);
+							modules.push_back(modInfo);
+						}
+					}
+				}
+
+				return modules;
 			}
 		} // memory
 	} // utils

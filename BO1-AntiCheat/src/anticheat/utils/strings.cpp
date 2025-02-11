@@ -80,6 +80,22 @@ namespace anticheat {
 				success = true;
 				return static_cast<int>(result);
 			}
+
+			std::wstring ToWideString(const std::string& str)
+			{
+				int size_needed = MultiByteToWideChar(CP_UTF8, 0, str.c_str(), -1, NULL, 0);
+				std::wstring wstr(size_needed, 0);
+				MultiByteToWideChar(CP_UTF8, 0, str.c_str(), -1, &wstr[0], size_needed);
+				return wstr;
+			}
+
+			std::string WStringToString(const std::wstring& wstr)
+			{
+				int size_needed = WideCharToMultiByte(CP_UTF8, 0, wstr.c_str(), -1, NULL, 0, NULL, NULL);
+				std::string str(size_needed - 1, 0); // -1 to remove null terminator from size
+				WideCharToMultiByte(CP_UTF8, 0, wstr.c_str(), -1, &str[0], size_needed, NULL, NULL);
+				return str;
+			}
 		} // strings
 	} // utils
 } // anticheat
