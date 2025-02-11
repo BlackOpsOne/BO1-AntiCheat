@@ -90,7 +90,7 @@ static void CheckForDebugger()
 			// PEB flags for debugging indicators
 			CheckPEBFlags())
 		{
-			ExitProcess(1);
+			//ExitProcess(1);
 		}
 
 		std::this_thread::sleep_for(std::chrono::milliseconds(100));
@@ -157,14 +157,15 @@ std::string WrapText(std::string text, sf::Font font, int fontSize, float maxWid
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow)
 //int main()
 {
+	// initialize game queues
+	anticheat::Initialize();
+
+	// attempt to run integrity initialization
 	if (!anticheat::integrity::Initialize())
 	{
 		MessageBoxA(NULL, "Failed to initialize.", "BO1 Anti Cheat", MB_OK | MB_ICONERROR);
 		return 0;
 	}
-
-	// setup anti cheat
-	anticheat::Initialize();
 
 	// load the settings
 	anticheat::settings::LoadSettings();
@@ -449,6 +450,9 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 		anticheat::settings::SaveSettings(false);
 		return 0;
 	}
+	
+	// start integrity checks
+	anticheat::integrity::StartChecksThread();
 
 	// start the game process thread
 	std::thread checkProcessThread(CheckForBlackOpsProcessThread);
@@ -529,7 +533,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	checkDebuggerThread.join();
 
 	anticheat::settings::SaveSettings(false);
-	anticheat::integrity::Cleanup();
+	anticheat::Cleanup();
 
 	return 0;
 }

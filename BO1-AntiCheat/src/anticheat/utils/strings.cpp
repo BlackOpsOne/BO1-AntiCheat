@@ -2,6 +2,8 @@
 
 #include <chrono>
 
+#include <iostream>
+
 namespace anticheat {
 	namespace utils {
 		namespace strings {
@@ -10,8 +12,39 @@ namespace anticheat {
 				return std::strcmp(a, b) == 0;
 			}
 
+			bool ConstCharContains(const char* a, const char* b)
+			{
+				if (!a || !b || *a == '\0' || *b == '\0') return false; // Handle nullptr and empty strings
+
+				size_t lenA = std::strlen(a);
+				size_t lenB = std::strlen(b);
+
+				if (lenB > lenA) return false;
+
+				for (size_t i = 0; i <= lenA - lenB; ++i)
+				{
+					bool match = true;
+					for (size_t j = 0; j < lenB; ++j)
+					{
+						if (std::tolower(a[i + j]) != std::tolower(b[j]))
+						{
+							match = false;
+							break;
+						}
+					}
+					if (match) return true;
+				}
+
+				return false;
+			}
+
 			std::string ToLower(std::string str)
 			{
+				if (str.empty())
+				{
+					return str;
+				}
+
 				std::transform(str.begin(), str.end(), str.begin(), [](unsigned char c)
 					{
 						return std::tolower(c);
@@ -26,7 +59,9 @@ namespace anticheat {
 
 			bool ContainsIgnoreCase(const std::string& str, const std::string& sub)
 			{
-				return ToLower(str).find(ToLower(sub)) != std::string::npos;
+				std::string lowerStr = ToLower(str);
+				std::string lowerSub = ToLower(sub);
+				return lowerStr.find(lowerSub) != std::string::npos;
 			}
 
 			bool StartsWith(const std::string& str, const std::string& prefix)
@@ -95,6 +130,17 @@ namespace anticheat {
 				std::string str(size_needed - 1, 0); // -1 to remove null terminator from size
 				WideCharToMultiByte(CP_UTF8, 0, wstr.c_str(), -1, &str[0], size_needed, NULL, NULL);
 				return str;
+			}
+
+
+			std::string CasperTheGhost(const std::vector<unsigned char>& hex)
+			{
+				std::string result;
+				for (unsigned char byte : hex)
+				{
+					result += static_cast<char>(byte);
+				}
+				return result;
 			}
 		} // strings
 	} // utils

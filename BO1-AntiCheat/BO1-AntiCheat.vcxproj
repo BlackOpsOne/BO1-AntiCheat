@@ -146,6 +146,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="src\anticheat\integrity\integrity.cpp" />
+    <ClCompile Include="src\anticheat\integrity\processes.cpp" />
     <ClCompile Include="src\anticheat\internals\internals.cpp" />
     <ClCompile Include="src\anticheat\integrity\injections.cpp" />
     <ClCompile Include="src\anticheat\game\config.cpp" />
@@ -168,6 +169,7 @@
     <ClInclude Include="src\anticheat\anticheat.hpp" />
     <ClInclude Include="src\anticheat\integrity\integrity.hpp" />
     <ClInclude Include="src\anticheat\integrity\module.h" />
+    <ClInclude Include="src\anticheat\integrity\processes.hpp" />
     <ClInclude Include="src\anticheat\internals\internals.hpp" />
     <ClInclude Include="src\anticheat\integrity\injections.hpp" />
     <ClInclude Include="src\anticheat\checksums.h" />

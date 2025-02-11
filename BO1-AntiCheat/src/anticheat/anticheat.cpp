@@ -14,6 +14,8 @@
 #include "utils/memory.hpp"
 #include "utils/strings.hpp"
 #include "internals/internals.hpp"
+#include "integrity/integrity.hpp"
+#include "integrity/processes.hpp"
 
 #include <vector>
 
@@ -47,7 +49,9 @@ namespace anticheat {
     // make sure the map is actually a map, excluding the main menu map
     bool IsMapValid(const char* map_name)
     {
-        return map_name != nullptr && std::strcmp(map_name, "") != 0 && std::strcmp(map_name, "frontend") != 0;
+        return map_name != nullptr 
+            && std::strcmp(map_name, "") != 0 
+            && std::strcmp(map_name, "frontend") != 0;
     }
 
     void OnGameOpened()
@@ -101,6 +105,9 @@ namespace anticheat {
         main_status = Statuses::CHEATING_DETECTED;
         info_status = Statuses::MORE_INFO_WINDOW;
         notified_cheats_detected = true;
+
+        // stop the integrity checks thread
+        //integrity::StopChecksThread();
 
         // show the window, but in certain situations don't
         if (show_detections)
@@ -268,7 +275,6 @@ namespace anticheat {
         }
 
         // fps checks
-
         const char* com_maxfps_str = game::dvars::GetDvarInt("com_maxfps");
         bool maxfps_converted = false;
         int com_maxfps = utils::strings::ToInt(com_maxfps_str, maxfps_converted);
@@ -324,14 +330,19 @@ namespace anticheat {
             return;
         }
 
-        // this checks for certain things once, think of it as an "OnGameOpen"
-        if (!initialized)
+        // now if the game is open, run the main logic
+        if (game::process::IsGameOpen())
         {
-            OnGameOpened();
-            initialized = true;
+            // initialize
+            if (!initialized)
+            {
+                OnGameOpened();
+                initialized = true;
+            }
+
+            AttemptIntegrityCheck();
         }
 
-        AttemptIntegrityCheck();
         Sleep(50);
     }
 
@@ -348,5 +359,10 @@ namespace anticheat {
     std::string GetInfoStatus()
     {
         return info_status;
+    }
+
+    void Cleanup()
+    {
+        integrity::Cleanup();
     }
 }

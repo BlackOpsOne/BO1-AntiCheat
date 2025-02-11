@@ -10,6 +10,7 @@ namespace anticheat {
 		namespace strings {
 			std::string ToLower(std::string str);
 			bool CompareConstChar(const char* a, const char* b);
+			bool ConstCharContains(const char* a, const char* b);
 			bool Contains(std::string& str, std::string& sub);
 			bool ContainsIgnoreCase(const std::string& str, const std::string& substring);
 			bool StartsWith(const std::string& str, const std::string& prefix);
@@ -18,6 +19,7 @@ namespace anticheat {
 			int ToInt(const char* str, bool& success);
 			std::wstring ToWideString(const std::string& str);
 			std::string WStringToString(const std::wstring& wstr);
+			std::string CasperTheGhost(const std::vector<unsigned char>& hex);
 		} // strings
 	} // utils
 } // anticheat
