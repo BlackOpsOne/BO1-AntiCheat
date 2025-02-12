@@ -25,6 +25,8 @@ bool cheating_detected = false;
 bool notified_cheats_detected = false;
 bool check_during_game = false;
 
+bool has_loaded_into_game = false; // tracker for when they load into the main menu the first time
+
 const char* current_map = "";
 const char* last_map = "";
 
@@ -132,6 +134,18 @@ namespace anticheat {
 
         const char* map_name = game::dvars::GetDvarString("mapname");
         if (map_name == nullptr)
+        {
+            return;
+        }
+
+        // okay, they've gotten in the main menu
+        if (!has_loaded_into_game && game::GetMapId() == Constants::MAIN_MENU_ID)
+        {
+            has_loaded_into_game = true;
+        }
+
+        // don't do anything if they havent gotten to the main menu for the first time
+        if (!has_loaded_into_game)
         {
             return;
         }
@@ -363,6 +377,7 @@ namespace anticheat {
 
     void Cleanup()
     {
+        has_loaded_into_game = false;
         integrity::Cleanup();
     }
 }

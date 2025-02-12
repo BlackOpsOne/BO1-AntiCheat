@@ -90,7 +90,7 @@ static void CheckForDebugger()
 			// PEB flags for debugging indicators
 			CheckPEBFlags())
 		{
-			//ExitProcess(1);
+			ExitProcess(1);
 		}
 
 		std::this_thread::sleep_for(std::chrono::milliseconds(100));
@@ -98,60 +98,63 @@ static void CheckForDebugger()
 }
 
 // since \n doesnt work on text with sfml, we need to make our own function for it
-std::string WrapText(std::string text, sf::Font font, int fontSize, float maxWidth) {
-	std::istringstream wordStream(text);
+std::string WrapText(std::string text, sf::Font font, int font_size, float max_width) {
+	std::istringstream word_stream(text);
 	std::string word;
-	std::string wrappedText;
-	std::string currentLine;
+	std::string wrapped_text;
+	std::string current_line;
 
-	sf::Text tempText("", font, fontSize);
+	sf::Text temp_text("", font, font_size);
 
-	while (std::getline(wordStream, word, ' ')) {
+	while (std::getline(word_stream, word, ' ')) {
 		if (word.find('\n') != std::string::npos) {
 			size_t pos;
 			while ((pos = word.find('\n')) != std::string::npos) {
 				std::string beforeNewline = word.substr(0, pos);
 				if (!beforeNewline.empty()) {
-					std::string testLine = currentLine + (currentLine.empty() ? "" : " ") + beforeNewline;
-					tempText.setString(testLine);
+					std::string test_line = current_line
+						+ (current_line.empty() ? "" : " ")
+						+ beforeNewline;
 
-					if (tempText.getGlobalBounds().width > maxWidth) {
-						wrappedText += currentLine + "\n";
-						currentLine = beforeNewline;
+					temp_text.setString(test_line);
+
+					if (temp_text.getGlobalBounds().width > max_width) {
+						wrapped_text += current_line + "\n";
+						current_line = beforeNewline;
 					}
 					else {
-						currentLine = testLine;
+						current_line = test_line;
 					}
 				}
 
-				wrappedText += currentLine + "\n";
-				currentLine.clear();
+				wrapped_text += current_line + "\n";
+				current_line.clear();
 				word.erase(0, pos + 1);
 			}
 
 			if (!word.empty()) {
-				currentLine = word;
+				current_line = word;
 			}
 		}
 		else {
-			std::string testLine = currentLine + (currentLine.empty() ? "" : " ") + word;
-			tempText.setString(testLine);
+			std::string test_line = current_line + (current_line.empty() ? "" : " ") + word;
+			temp_text.setString(test_line);
 
-			if (tempText.getGlobalBounds().width > maxWidth) {
-				wrappedText += currentLine + "\n";
-				currentLine = word;
+			if (temp_text.getGlobalBounds().width > max_width) {
+				wrapped_text += current_line + "\n";
+				current_line = word;
 			}
 			else {
-				currentLine = testLine;
+				current_line = test_line;
 			}
 		}
 	}
 
-	if (!currentLine.empty()) {
-		wrappedText += currentLine;
+	if (!current_line.empty()) {
+		wrapped_text += current_line;
 	}
 
-	return wrappedText;
+	return wrapped_text;
 }
 
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow)
