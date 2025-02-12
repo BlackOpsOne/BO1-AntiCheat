@@ -2,6 +2,7 @@
 #include "injections.hpp"
 #include "processes.hpp"
 
+#include <string>
 #include <thread>
 #include <atomic>
 #include <sstream>
@@ -57,18 +58,8 @@ namespace anticheat {
 			integrity_thread = std::thread(IntegrityThread);
 		}
 
-		void StopChecksThread()
-		{
-			thread_running = false;
-			if (integrity_thread.joinable())
-			{
-				integrity_thread.join();
-			}
-		}
-
 		void Cleanup()
 		{
-			StopChecksThread();
 			injections::Cleanup();
 		}
 	}

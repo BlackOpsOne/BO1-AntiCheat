@@ -538,5 +538,6 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	anticheat::settings::SaveSettings(false);
 	anticheat::Cleanup();
 
+	ExitProcess(0);
 	return 0;
 }

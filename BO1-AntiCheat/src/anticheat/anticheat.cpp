@@ -90,6 +90,7 @@ namespace anticheat {
         performed_zone_check = false;
         game::dvars::Cleanup();
         game::process::Cleanup();
+        has_loaded_into_game = false;
     }
 
     // adds a cheating method to a list, this will be shown in a second window
@@ -377,7 +378,6 @@ namespace anticheat {
 
     void Cleanup()
     {
-        has_loaded_into_game = false;
         integrity::Cleanup();
     }
 }
